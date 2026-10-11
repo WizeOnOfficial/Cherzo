@@ -34,7 +34,7 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
         }
 
         pickUpController.GrabPickup(this);
-        InventorySystem.current.Add(referenceItem);
+        // InventorySystem.current.Add(referenceItem);
         // Destroy(this);
     }
 
