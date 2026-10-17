@@ -1,10 +1,12 @@
 using UnityEngine;
+using GameDevelopmentProject.Quest;
 
 public class PhysicsPickup : MonoBehaviour, IPickupable
 {
     [SerializeField] Rigidbody pickupRigidbody;
     [SerializeField] Collider pickupCollider;
     [SerializeField] Vector3 pickupPositionOffset;
+    [SerializeField] InventoryPickupAcquisition inventoryAcquisition;
 
     public InventoryItemData referenceItem;
 
@@ -12,6 +14,22 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
 
     public void Interact(InteractionController interactionController)
     {
+        if (inventoryAcquisition != null)
+        {
+            if (referenceItem == null)
+            {
+                Debug.LogError("Inventory pickup acquisition requires a reference item.", this);
+                return;
+            }
+
+            if (inventoryAcquisition.TryAcquire(referenceItem))
+            {
+                gameObject.SetActive(false);
+            }
+
+            return;
+        }
+
         var pickupController = interactionController.GetComponent<PickUpController>();
 
         Grab(pickupController);
@@ -34,7 +52,7 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
         }
 
         pickUpController.GrabPickup(this);
-        InventorySystem.current.Add(referenceItem);
+        //InventorySystem.current.Add(referenceItem);
         // Destroy(this);
     }
 
