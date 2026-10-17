@@ -10,7 +10,11 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
 
     public InventoryItemData referenceItem;
 
-    public string InteractMsg => "Press E to Pickup";
+    public string InteractMsg =>
+        inventoryAcquisition == null || inventoryAcquisition.AcquisitionGate == null ||
+        inventoryAcquisition.AcquisitionGate.CanAcquire(out _)
+            ? "Press E to Pickup"
+            : inventoryAcquisition.AcquisitionGate.DeniedPrompt;
 
     public void Interact(InteractionController interactionController)
     {

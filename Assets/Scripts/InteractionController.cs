@@ -11,6 +11,24 @@ public class InteractionController : MonoBehaviour
 
     IInteractable currentTargetedInteractable;
 
+    public string InteractionText => interactionText != null ? interactionText.text : string.Empty;
+
+    public void ClearInteractionText()
+    {
+        if (interactionText != null)
+        {
+            interactionText.text = string.Empty;
+        }
+    }
+
+    public void SetInteractionText(string text)
+    {
+        if (interactionText != null)
+        {
+            interactionText.text = text ?? string.Empty;
+        }
+    }
+
     public void Update() 
     {
         UpdateCurrentInteractable();
