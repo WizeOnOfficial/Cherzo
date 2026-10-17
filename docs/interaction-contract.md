@@ -49,6 +49,19 @@ Player targets object
 - Emits either `AccessDenied` or `AccessGranted`.
 - Must not decide quest completion itself.
 
+### Gated pickup
+
+- A pickup with a prerequisite must validate that prerequisite before calling
+  the inventory adapter.
+- A denied pickup must not publish `ItemAdded` or change inventory state.
+- Quest 1 External Fuse pickup requires successful Hidden Message discovery.
+- A gated pickup must not display a pickup prompt before its prerequisite is
+  satisfied; it displays the prerequisite prompt instead.
+- The gate reads the prerequisite owner's explicit state through an Inspector
+  reference; it does not subscribe to or republish gameplay events.
+- Prompt queries must be side-effect free; they must not write gameplay logs or
+  mutate state because they can run every frame.
+
 ## Inspector checklist
 
 - [ ] Interaction ID assigned.

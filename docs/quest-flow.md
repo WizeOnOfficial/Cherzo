@@ -1,7 +1,7 @@
 # Quest Flow
 
-**Status:** Accepted gameplay direction; Quest 1 objectives 1–7 have verified
-prototype runtime coverage, while Maintenance Wing entry remains planned.
+**Status:** Accepted gameplay direction; Quest 1 objectives 1–8 have prototype
+runtime coverage and require final Unity play-mode validation.
 
 ## Scope boundary
 
@@ -29,22 +29,22 @@ Main Lobby
 | 2 | Try initial control panel access | implemented prototype denied result | ID Card | access remains denied |
 | 3 | Inspect control panel | implemented prototype success result | initial denial | `ControlPanelInspected` |
 | 4 | Find hidden message | implemented prototype success result | panel state | objective completed |
-| 5 | Find external fuse in Janitor Room | implemented prototype item event | none | objective completed |
+| 5 | Find external fuse in Janitor Room | implemented prototype item event after Hidden Message success | Hidden Message found | objective completed |
 | 6 | Install fuse as emergency override | implemented prototype success result; fuse consumed after success | hidden message + fuse available | `FuseInstalled` |
-| 7 | Scan ID card again on the same Control Panel reader | implemented prototype access success | fuse installed | `MaintenanceWingAccessGranted` |
+| 7 | Scan the same ID card again at the Main Room Control Panel | implemented prototype access success | fuse installed | `MaintenanceWingAccessGranted` |
 | 8 | Enter Maintenance Wing | implemented prototype area event; Unity wiring pending | access granted + trigger entered | Quest 1 complete |
 
 ## Quest 2 — Control room access
 
 | Urutan | Objective | Trigger selesai | Requirement | Event keluar |
 |---|---|---|---|---|
-| 1 | Scan ID card at Control Room | planned access result | ID Card | electrical short |
-| 2 | Repair electrical short in Breaker Room | planned repair event | none/defined repair interaction | objective completed |
-| 3 | Scan again and receive role denial | planned denied result | power restored | objective completed |
-| 4 | Find IT guide | planned item query/event | none | objective completed |
-| 5 | Obtain/connect hardware | planned interaction/event | hardware | objective completed |
-| 6 | Modify ID Card role using `rwx` puzzle | planned access update event | guide + hardware | objective completed |
-| 7 | Scan card again | planned access event | role updated | `ControlRoomAccessGranted` |
+| 1 | Scan ID card at the Maintenance Wing Control Panel to access Control Room | implemented prototype `PowerUnavailable` result | Maintenance Wing entered + ID Card; ID Card remains in inventory | electrical short |
+| 2 | Repair electrical short in Breaker Room | implemented prototype `InteractionCompleted(interaction.breaker_panel, Success)` | `PowerUnavailable` detected | objective completed |
+| 3 | Scan again and receive role denial | implemented prototype `AccessResolved(access.control_room, Denied)` | power restored; same ID Card still present | objective completed |
+| 4 | Find IT guide | implemented prototype item event | none; `item.it_guide` pickup | objective completed |
+| 5 | Obtain/connect hardware | implemented prototype `InteractionCompleted(interaction.hardware_connection, Success)` | IT Guide found; hardware is interaction-only, not an Inventory item | objective completed |
+| 6 | Modify ID Card role using a simulated Linux-style `chmod` puzzle | implemented prototype parser and `AccessRoleModified`; terminal UI planned | guide + hardware connected to IT desktop; initial permission `r--` | objective completed |
+| 7 | Scan card again | planned access event | simulated permission updated to `rwx` | `ControlRoomAccessGranted` |
 | 8 | Enter Control Room | planned area event | door open | Sprint 1 complete |
 
 ## Cutscene hooks
@@ -79,3 +79,43 @@ Sprint 2 extends the game additively. It may add new item definitions and events
 - [ ] Final stable IDs and payload types validated by the team.
 - [ ] Compatibility adapter/query boundary agreed with Inventory owner.
 - [ ] Exact `rwx` puzzle UI and required permission values.
+
+## Quest 2 IT desktop terminal contract
+
+The IT Center role-modification step uses a simulated terminal shown through
+the player's in-game desktop POV. It is a Unity puzzle, not an operating
+system shell.
+
+Initial virtual card state:
+
+```text
+permission: r--
+role: Guest
+```
+
+Required command:
+
+```text
+chmod u=rwx id_card
+```
+
+The terminal may expose only the documented virtual commands:
+
+```text
+help
+help chmod
+ls -l
+cat id_card
+chmod u=rwx id_card
+clear
+```
+
+`help chmod` must explain `r`, `w`, `x`, the `u` owner selector, and the
+required `rwx` target. Invalid or unsupported command text must not mutate
+the access state and should show a local terminal error/hint.
+
+The prototype must never invoke `Process`, PowerShell, Command Prompt, a
+Linux shell, filesystem APIs, or arbitrary command execution. Successful
+validation changes only the Quest 2 access-role state and publishes a typed
+access-role update event. It does not create, remove, or mutate the
+`item.id_card`; the same card remains permanently in Inventory.

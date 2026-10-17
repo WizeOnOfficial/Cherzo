@@ -96,7 +96,7 @@ External Fuse installation (prototype validation)
   -> GameplayEventHub.ItemRemoved
   -> QuestObjectiveCompleted(quest.1.install_external_fuse)
 
-Maintenance Wing card scan on the same Control Panel reader
+Maintenance Wing access card scan on the same Main Room Control Panel
   -> ControlPanelPrototypeInteraction
   -> GameplayEventHub.AccessResolved(
        access.maintenance_wing, Success)
@@ -137,6 +137,24 @@ When a production asset arrives:
 
 The production asset may change mesh, Animator, audio, VFX, and presentation.
 It must not become the owner of Quest 1 progress.
+
+## Quest 2 simulated IT terminal
+
+The IT desktop is a Quest 2 interaction/presentation boundary. The player
+views it through the in-game POV camera and enters a restricted Linux-style
+command vocabulary. The command parser is implemented in Unity and validates
+the text locally.
+
+Supported prototype commands are `help`, `help chmod`, `ls -l`, `cat id_card`,
+`chmod u=rwx id_card`, and `clear`. The parser must not execute shell
+commands, call `Process`, access the host filesystem, or accept arbitrary
+command text.
+
+The terminal starts with the virtual ID Card permission `r--` and role
+`Guest`. A valid `chmod u=rwx id_card` changes the virtual access role to
+Control Room Administrator and publishes a typed access-role update event.
+This state is separate from Inventory: the permanent `item.id_card` is not
+removed, replaced, or rewritten.
 
 The Quest 1 first and second card scans use the same physical reader: the
 `CardReader` child inside `SM_ControlPanel`. A separate Maintenance Wing card

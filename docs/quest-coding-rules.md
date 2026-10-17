@@ -28,6 +28,11 @@
 - UnityEvent is for local Inspector presentation (Animator, audio, VFX, camera hook), not the sole source of cross-module gameplay state.
 - Do not duplicate authoritative state inside an adapter.
 - Invalid input must produce an explicit result or error; never silently advance a quest.
+- Simulated terminal commands must be parsed and validated inside Unity; never
+  execute OS shell commands, call `Process`, access host files, or accept an
+  arbitrary command interpreter for gameplay.
+- Access-role changes must publish typed gameplay facts and must not mutate the
+  permanent `item.id_card` Inventory item.
 
 ## Unity component rules
 

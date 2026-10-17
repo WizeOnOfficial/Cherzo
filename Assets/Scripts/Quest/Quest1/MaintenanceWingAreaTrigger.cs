@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GameDevelopmentProject.Quest
@@ -7,7 +8,7 @@ namespace GameDevelopmentProject.Quest
         [SerializeField] private GameplayEventHub eventHub;
         [SerializeField] private Transform playerRoot;
 
-        private bool isPlayerInside;
+        private readonly HashSet<Collider> playerCollidersInside = new();
 
         private void Awake()
         {
@@ -39,7 +40,7 @@ namespace GameDevelopmentProject.Quest
 
         private void OnTriggerEnter(Collider other)
         {
-            if (isPlayerInside || eventHub == null || playerRoot == null)
+            if (eventHub == null || playerRoot == null)
             {
                 return;
             }
@@ -49,9 +50,11 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
-            isPlayerInside = true;
-            Debug.Log("Maintenance Wing area entered.", this);
-            eventHub.PublishAreaEntered(QuestGameplayIds.MaintenanceWing);
+            if (playerCollidersInside.Add(other) && playerCollidersInside.Count == 1)
+            {
+                Debug.Log("Maintenance Wing area entered.", this);
+                eventHub.PublishAreaEntered(QuestGameplayIds.MaintenanceWing);
+            }
         }
 
         private void OnTriggerExit(Collider other)
@@ -62,7 +65,7 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
-            isPlayerInside = false;
+            playerCollidersInside.Remove(other);
         }
     }
 }

@@ -6,6 +6,9 @@ namespace GameDevelopmentProject.Quest
     {
         [SerializeField] private InventoryCompatibilityAdapter inventoryAdapter;
         [SerializeField] private int amount = 1;
+        [SerializeField] private PickupAcquisitionGate acquisitionGate;
+
+        public PickupAcquisitionGate AcquisitionGate => acquisitionGate;
 
         public bool TryAcquire(InventoryItemData itemDefinition)
         {
@@ -18,6 +21,13 @@ namespace GameDevelopmentProject.Quest
             if (inventoryAdapter == null)
             {
                 Debug.LogError($"{nameof(InventoryPickupAcquisition)} requires an InventoryCompatibilityAdapter reference.", this);
+                return false;
+            }
+
+            if (acquisitionGate != null &&
+                !acquisitionGate.CanAcquire(out var denialReason))
+            {
+                Debug.Log($"Inventory pickup denied. Reason: {denialReason}", this);
                 return false;
             }
 

@@ -8,6 +8,11 @@ namespace GameDevelopmentProject.Quest
         public const string ExternalFuseItem = "item.external_fuse";
         public const string GuideItem = "item.it_guide";
         public const string HardwareItem = "item.access_hardware";
+        public const string IdCardAccessSubject = "access_subject.id_card";
+        public const string GuestPermission = "r--";
+        public const string ControlRoomAdministratorPermission = "rwx";
+        public const string GuestRole = "role.guest";
+        public const string ControlRoomAdministratorRole = "role.control_room_administrator";
 
         public const string MaintenanceWing = "area.maintenance_wing";
         public const string MaintenanceWingAccess = "access.maintenance_wing";
@@ -18,9 +23,11 @@ namespace GameDevelopmentProject.Quest
             "interaction.control_panel_fuse_installation";
         public const string HiddenMessage = "interaction.hidden_message";
         public const string BreakerPanel = "interaction.breaker_panel";
+        public const string HardwareConnection = "interaction.hardware_connection";
         public const string CardReader = "interaction.control_room_card_reader";
         public const string Desktop = "interaction.it_desktop";
         public const string Quest1 = "quest.1";
+        public const string Quest2 = "quest.2";
         public const string Quest1FindIdCard = "quest.1.find_id_card";
         public const string Quest1TryInitialControlPanelAccess =
             "quest.1.try_initial_control_panel_access";
@@ -30,6 +37,11 @@ namespace GameDevelopmentProject.Quest
         public const string Quest1InstallExternalFuse = "quest.1.install_external_fuse";
         public const string Quest1ScanIdCardAfterFuse = "quest.1.scan_id_card_after_fuse";
         public const string Quest1EnterMaintenanceWing = "quest.1.enter_maintenance_wing";
+        public const string Quest2RepairElectricalShort = "quest.2.repair_electrical_short";
+        public const string Quest2RoleDenied = "quest.2.role_denied";
+        public const string Quest2FindItGuide = "quest.2.find_it_guide";
+        public const string Quest2ConnectHardware = "quest.2.connect_hardware";
+        public const string Quest2ModifyAccessRole = "quest.2.modify_access_role";
     }
 
     public enum GameplayInteractionResult
@@ -115,6 +127,23 @@ namespace GameDevelopmentProject.Quest
         public string ObjectiveId { get; }
     }
 
+    public readonly struct AccessRoleModifiedEvent
+    {
+        public AccessRoleModifiedEvent(
+            string accessSubjectId,
+            string permissionValue,
+            string roleId)
+        {
+            AccessSubjectId = accessSubjectId;
+            PermissionValue = permissionValue;
+            RoleId = roleId;
+        }
+
+        public string AccessSubjectId { get; }
+        public string PermissionValue { get; }
+        public string RoleId { get; }
+    }
+
     public interface IInventoryQuery
     {
         bool HasItem(string itemId, int requiredAmount = 1);
@@ -135,5 +164,6 @@ namespace GameDevelopmentProject.Quest
         event Action<AccessEvent> AccessResolved;
         event Action<AreaEnteredEvent> AreaEntered;
         event Action<QuestObjectiveEvent> QuestObjectiveCompleted;
+        event Action<AccessRoleModifiedEvent> AccessRoleModified;
     }
 }

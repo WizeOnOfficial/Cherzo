@@ -14,9 +14,9 @@ Related gameplay IDs come from `docs/gameplay-contracts.md`; asset names never r
 | 4 | Hidden Message note | child `HiddenNote` of `SM_ControlPanel` | Interactable | Quest 1 obj. 4 | Delivered (inside Control Panel) |
 | 5 | Card Reader (standalone, Control Room door) | `SM_CardReader.fbx` | Interactable | `AccessGranted/Denied` | Planned |
 | 6 | Security door (sliding, double) | `SM_SecurityDoor.fbx` | Interactable | Maintenance Wing / Control Room | Planned |
-| 7 | Breaker panel | `SM_BreakerPanel.fbx` | Interactable | Quest 2 obj. 2 | Planned |
+| 7 | Breaker panel | `SM_BreakerPanel.fbx` | Interactable | Quest 2 obj. 2 | Planned — prototype interaction wired in `TestScene` |
 | 8 | IT computer + card writer hardware | `SM_ITWorkstation.fbx` | Interactable | Quest 2 obj. 5–6 | Planned |
-| 9 | IT guide (manual/binder) | `SM_ITGuide.fbx` | Pickup | Quest 2 obj. 4 | Planned |
+| 9 | IT guide (manual/binder) | `SM_ITGuide.fbx` | Pickup | Quest 2 obj. 4 | Planned — prototype pickup wired in `TestScene` |
 | 10 | First-person hands (static) | `SM_FPHands.fbx` | Character | Player | Planned |
 | 11 | Props: desk, chair, shelf, bin, cart, crates, papers | `SM_Prop_*.fbx` | Props | — | Planned |
 | 12 | Rooms: Main Lobby, Janitor, Maintenance Wing, Breaker, IT Center | `SM_Room_*.fbx` | Rooms | Areas | Planned (later) |

@@ -38,6 +38,222 @@ Jika perubahan masih berupa prototype di `TestScene`, tulis jelas:
 
 ## Status legend
 
+### 2026-10-18 — Quest 2 IT terminal decision
+
+**Adjusted:**
+
+- Quest 2 role modification is explicitly a simulated Linux-style terminal
+  puzzle viewed through the in-game desktop POV.
+- The virtual card starts at `r--` / `Guest`.
+- The accepted prototype command is `chmod u=rwx id_card`.
+- The supported help vocabulary is `help`, `help chmod`, `ls -l`,
+  `cat id_card`, `chmod u=rwx id_card`, and `clear`.
+
+**Safety contract:**
+
+- Unity validates command text locally.
+- No `Process`, PowerShell, Command Prompt, Linux shell, host filesystem
+  access, or arbitrary command execution is allowed.
+- Successful validation changes access-role state only.
+- The permanent `item.id_card` remains unchanged in Inventory.
+
+**Planned event boundary:**
+
+- The simulated IT desktop will publish `AccessRoleModified` after successful
+  validation.
+- The Control Room access interaction will consume the typed state/event; the
+  desktop must not call a concrete door or access manager.
+
+**Not implemented:**
+
+- IT desktop terminal UI/parser.
+- `AccessRoleModified` payload implementation.
+- Guide discovery, hardware connection interaction, and final scan.
+
+### 2026-10-18 — Quest 2 role denial after power restoration
+
+**Implemented:**
+
+- Control Room scan now transitions from `PowerUnavailable` to role denial
+  after the Breaker Panel publishes a successful repair.
+- The same permanent ID Card is still queried and is never consumed.
+- Quest 2 records `quest.2.role_denied` once through the typed access event.
+
+**Audit correction:**
+
+- The first Control Room scan now publishes `PowerUnavailable` and returns
+  before any role-denial branch.
+- Role denial is reachable only after a successful Breaker Panel repair event.
+- This fixes the previous state bug where the first scan set the
+  `PowerUnavailable` flag without publishing the event, leaving the Breaker
+  inactive while the panel incorrectly reported role denial.
+
+**Not implemented:**
+
+- IT Guide discovery.
+- Hardware connection interaction.
+- Simulated terminal UI/parser and `AccessRoleModified`.
+
+### 2026-10-18 — Quest 2 IT Guide prototype
+
+**Implemented:**
+
+- Added the `item.it_guide` ScriptableObject definition.
+- Added `QuestPickup_ITGuide_Prototype` to `TestScene`.
+- Reused `InventoryPickupAcquisition` and `InventoryCompatibilityAdapter`.
+- Gated the prototype pickup until the Quest 2 role-denial objective is
+  complete, preventing an out-of-order acquisition.
+- Quest 2 now completes `quest.2.find_it_guide` from the typed `ItemAdded`
+  event.
+
+**Not implemented:**
+
+- Hardware connection interaction.
+- Simulated terminal UI/parser.
+
+### 2026-10-18 — Quest 2 hardware connection prototype
+
+**Implemented:**
+
+- Added `HardwareConnectionPrototypeInteraction`.
+- Hardware is interaction-only and never enters Inventory.
+- The interaction becomes available after the typed IT Guide `ItemAdded` fact.
+- Quest 2 completes `quest.2.connect_hardware` from the typed interaction
+  success event.
+- Repeated connection attempts return `AlreadyCompleted`.
+
+**Not implemented:**
+
+- Simulated terminal UI/parser.
+- `AccessRoleModified` event and final scan.
+
+**Validation:**
+
+- Build and Play Mode smoke test are required.
+- Prototype only — not yet integrated into production scene.
+
+**Integration runbook:**
+
+1. Open `Assets/Scenes/TestScene.unity`.
+2. Select `ITHardwareConnection_Prototype`.
+3. Confirm `HardwareConnectionPrototypeInteraction.eventHub` references
+   `GameplaySystems`.
+4. Confirm the object has a collider and is not a pickup or Inventory item.
+5. Enter Play Mode and approach the object before finding the IT Guide.
+6. Confirm the prompt says `Find the IT Guide first` and interaction does not
+   add an item.
+7. Complete the role-denial step, pick up the IT Guide, and confirm
+   `quest.2.find_it_guide`.
+8. Interact with the hardware and confirm
+   `quest.2.connect_hardware` is completed once.
+9. Interact again and confirm no duplicate objective completion.
+10. Save, close, and reopen the scene before accepting the serialized wiring.
+
+**Rollback:** remove only `ITHardwareConnection_Prototype` from the
+`TestScene` hierarchy and leave the shared contract and interaction script
+available for a later scene integration.
+
+### 2026-10-18 — Quest 2 access-role contract
+
+**Implemented:**
+
+- Added `AccessRoleModifiedEvent` to the shared typed contract.
+- Added stable IDs for the ID Card access subject, Guest role, and Control
+  Room Administrator role.
+- Added validated virtual permission values `r--` and `rwx`.
+- Added `GameplayEventHub.PublishAccessRoleModified`.
+- Added the event to `IGameplayEventSource`.
+- The publisher rejects empty subject/role IDs and unsupported permission
+  values before dispatching.
+- The publisher rejects mismatched permission/role pairs before dispatching.
+
+### 2026-10-18 — Quest 2 virtual terminal parser
+
+**Implemented:**
+
+- Added `VirtualTerminalCommandParser`.
+- Parser requires `HasConnectedHardware` before processing commands.
+- Implemented only the documented whitelist:
+  `help`, `help chmod`, `ls -l`, `cat id_card`,
+  `chmod u=rwx id_card`, and `clear`.
+- Invalid commands do not mutate virtual access state.
+- Exact `chmod u=rwx id_card` changes virtual state once and publishes the
+  typed `AccessRoleModified` event.
+- Quest 2 completes `quest.2.modify_access_role` only for the validated typed
+  event and only after hardware connection.
+
+**Not implemented:**
+
+- Terminal Canvas, keyboard input field, focus handling, player input lock,
+  and final Control Room scan.
+
+**Validation:**
+
+- Build validation is required.
+- UI scripts are not yet wired into `TestScene`; no scene serialization was
+  changed in this step.
+
+### 2026-10-18 — Quest 2 terminal UI controller
+
+**Implemented:**
+
+- Added `VirtualTerminalUI` as a presenter around the isolated parser.
+- Added keyboard command submission through `TMP_InputField`.
+- Added Escape-to-close behavior.
+- Added explicit player control references; opening the terminal disables both
+  `PlayerInputScript` and `InteractionController`, because the current player
+  movement/look code polls keyboard and mouse directly in `Update()`.
+- Added `ITDesktopTerminalInteraction` as the explicit world interaction that
+  opens the UI after hardware connection.
+- Terminal UI controller is parented under `InteractionCanvas`; the terminal
+  panel must be a Canvas descendant to render correctly.
+- Opening the terminal clears the old interaction prompt while player controls
+  are locked, and closing it restores the prompt only when interaction control
+  was enabled before opening.
+
+**Not implemented:**
+
+- Scene Canvas/InputField/Text wiring.
+- Final Control Room scan and access.
+
+**Validation:**
+
+- Runtime build validation is required.
+- Unity Editor scene setup is provided by
+  `Quest 2/Build Terminal Prototype` in
+  `Assets/Editor/Quest2TerminalSceneSetup.cs`.
+- Play Mode validation is pending after the menu action is run.
+
+**Integration runbook:**
+
+1. Create a prototype Canvas panel under the existing UI canvas.
+2. Add a `TMP_InputField` for command entry and a `TextMeshProUGUI` output.
+3. Add `VirtualTerminalUI` to a dedicated active UI controller object. Do not
+   place it on the panel GameObject that will be disabled.
+4. Assign the parser, input field, output text, panel GameObject,
+   `PlayerInputScript`, and `InteractionController`.
+5. Add `ITDesktopTerminalInteraction` to the IT desktop object and assign the
+   Quest 2 tracker and `VirtualTerminalUI`.
+6. Configure the input field `On End Edit` to call `VirtualTerminalUI.SubmitCommand`.
+7. Save, close, and reopen the scene; confirm no reference is `Missing`.
+8. Test opening only after hardware connection, command entry, Escape close,
+   and movement/camera restoration.
+
+The scene setup script writes `TestScene` through Unity's own serialization.
+Because the project was already open in another Unity process during this
+session, the batch invocation could not acquire the project lock; the scene
+was not changed automatically. Run the menu action from the active Editor
+instance, save, close, and reopen the scene before Play Mode testing.
+
+**Not implemented:**
+
+- Scene wiring and final scan.
+
+**Validation:**
+
+- Build validation is required.
+- No scene changes are required for this contract step.
+
 - **Done** — selesai dan tervalidasi.
 - **Not done** — belum dikerjakan.
 - **Adjusted** — ada perubahan sadar terhadap rencana/kontrak.
@@ -608,48 +824,21 @@ configure it on a dedicated Quest object without modifying Inventory internals.
   `docs/quest-architecture.md`, and the latest applicable handoff template were
   reviewed before this change.
 
-  **Implemented:**
+  **Historical prototype, not active flow:**
 
-  - Added `MaintenanceWingCardReaderPrototypeInteraction`.
-  - The reader validates the ID Card through `InventoryCompatibilityAdapter`.
-  - It listens for successful fuse installation through `GameplayEventHub`.
-  - Before the fuse installation event, the scan returns explicit `Denied`.
-  - After the event, a valid ID Card scan returns `Success` through
-    `AccessResolved`.
-  - `Quest1ObjectiveTracker` completes the scan objective only for that exact
-    successful access result.
-  - Repeated successful scans return `AlreadyCompleted` without duplicate quest
-    progress.
-
-  **Integration runbook — prototype only:**
-
-  1. Create an empty GameObject named `MaintenanceWingCardReader_Prototype`.
-  2. Add a visible primitive child if needed and ensure its Collider is on the
-     same GameObject as `MaintenanceWingCardReaderPrototypeInteraction`.
-  3. Add `MaintenanceWingCardReaderPrototypeInteraction` to that Collider object.
-  4. Assign `GameplaySystems/GameplayEventHub` to `Event Hub`.
-  5. Assign `GameplaySystems/InventoryCompatibilityAdapter` to `Inventory Query`.
-  6. Save the scene.
-  7. Restart Play mode and test without ID Card. Expected:
-     `Maintenance Wing card scan denied. Reason: missing 'item.id_card'.`
-  8. With ID Card but before fuse installation, expected:
-     `Maintenance Wing card scan denied. Reason: External Fuse is not installed.`
-  9. Complete Hidden Message, find/install the fuse, then scan again. Expected:
-     `Maintenance Wing card reader emergency override is now enabled.`
-     `Maintenance Wing access granted after second ID Card scan.`
-     `Quest 1 objective completed: ID Card scanned after fuse installation.`
-  10. Scan again. Expected:
-      `Maintenance Wing access has already been granted. No new state change.`
-  11. Do not expect the player to move or the Maintenance Wing area objective to
-      complete yet.
+  - `MaintenanceWingCardReaderPrototypeInteraction` was explored as a
+    standalone Maintenance Wing reader.
+  - It is not attached to `MaintenanceWingControlPanel` and must not be added
+    for Quest 1.
+  - The accepted flow is the original Main Room
+    `ControlPanelPrototypeInteraction`, used again for the second scan after
+    fuse installation.
 
   **Status:**
 
-  - **Done:** prototype card-reader access event and Quest 1 objective 7.
-  - **Not done:** Maintenance Wing area trigger, door presentation, and Quest 1
-    completion.
-  - **Adjusted:** access is represented by `AccessResolved`; the reader does not
-    call Quest code directly.
+  - **Adjusted:** the standalone reader prototype is excluded from the active
+    Quest 1 scene flow.
+  - **Done:** Quest 1 objective 7 is owned by the original Main Room panel.
   - **Blocked:** final door/area asset and production access presentation remain
     pending.
 
@@ -659,13 +848,38 @@ configure it on a dedicated Quest object without modifying Inventory internals.
   - Control Panel inspection and Hidden Message discovery completed once.
   - Fuse installation was correctly denied while the fuse was missing.
   - External Fuse was then consumed successfully; remaining amount was `0`.
-  - The second ID Card scan succeeded on the same Control Panel reader and
-    completed `quest.1.scan_id_card_after_fuse`.
-  - Repeated scans returned `AlreadyCompleted` behavior without duplicate
-    objective progress.
-  - The `MaintenanceWingCardReader_Prototype` still emitted its old emergency
-    override log, so it remains enabled and must be disabled manually before
-    the next test.
+  - The intended flow is that the original Main Room Control Panel is used
+    again for the second ID Card scan after fuse installation.
+  - `MaintenanceWingControlPanel` is a separate panel inside the unlocked
+    Maintenance Wing and is reserved for Quest 2 Control Room access.
+  - A prior correction incorrectly moved the Quest 1 scan to that second panel;
+    that change was reverted.
+  - Repeated area-entry logs were traced to multiple Player colliders and the
+    trigger now deduplicates colliders while the Player remains inside.
+
+  ### 2026-10-17 — External Fuse pickup prerequisite
+
+  **Implemented:**
+
+  - External Fuse acquisition now has an explicit pickup gate.
+  - The gate reads `HiddenMessagePrototypeInteraction.HasBeenFound` through an
+    explicit Inspector reference.
+  - Before Hidden Message success, the fuse remains visible but pickup is
+    denied without adding the item or publishing `ItemAdded`.
+  - After Hidden Message success, the existing pickup path is unchanged.
+  - The pickup prompt now says `Inspect Hidden Message first` until the
+    prerequisite is satisfied.
+  - The gate has no event subscription, preventing stale event state and any
+    message-to-fuse event cycle.
+  - Prompt evaluation no longer logs the locked state; `CanAcquire` is a
+    side-effect-free query and denial logging occurs only when `E` is pressed.
+
+  **Validation target:**
+
+  - Before Hidden Message: `Inventory pickup denied...` and no
+    `item.external_fuse` `ItemAdded` event.
+  - After Hidden Message: the existing successful pickup log and objective
+    completion appear once.
 
   ### 2026-10-17 — Maintenance Wing area trigger implementation
 
@@ -695,43 +909,40 @@ configure it on a dedicated Quest object without modifying Inventory internals.
 
   **Finding:**
 
-  - The standalone `MaintenanceWingCardReader_Prototype` was incorrect for the
-    agreed flow.
-  - The first and second ID Card scans must use the same `CardReader` on the
-    Control Panel.
-  - The standalone prototype also placed its interaction script on a root object
-    while the raycast hit a child Collider, so it was not reliably interactable.
+  - The first Control Panel still contained a legacy second-scan branch.
+  - That branch caused access to be granted from the wrong physical panel.
+  - Area entry could be logged repeatedly when multiple Player colliders
+    crossed the trigger.
 
   **Adjusted:**
 
-  - `ControlPanelPrototypeInteraction` now handles the second ID Card scan after
-    successful fuse installation.
-  - The same component publishes `AccessResolved` for
-    `access.maintenance_wing`.
-  - The prompt changes to `Press E to Scan ID Card`, then to
-    `Maintenance Wing Access Granted`.
-  - A separate card-reader prototype is no longer part of the Quest 1 flow.
+  - The original Main Room `ControlPanelPrototypeInteraction` remains the
+    owner of the complete Quest 1 flow, including the second ID Card scan
+    after fuse installation.
+  - `MaintenanceWingControlPanel` is reserved for Quest 2 Control Room
+    access and is not wired into Quest 1.
+  - `MaintenanceWingAreaTrigger` tracks all Player colliders and publishes one
+    area-entry fact while the Player remains inside.
 
-  **Manual Unity correction:**
+  **Manual Unity validation:**
 
-  1. Select `MaintenanceWingCardReader_Prototype` in `TestScene`.
-  2. Disable the whole GameObject, or remove it after confirming it is only the
-     temporary standalone prototype.
-  3. Do not add a second card-reader component to the Control Panel yet.
-  4. Select the same Control Panel object that currently has
-     `ControlPanelPrototypeInteraction` and its Collider.
-  5. After fuse installation, aim at that same reader/panel and confirm the
-     prompt becomes `Press E to Scan ID Card`.
-  6. Press `E` and expect the second-scan success logs.
+  1. Select `ControlPanel_Prototype` in `TestScene`.
+  2. Confirm it has `ControlPanelPrototypeInteraction`.
+  3. After fuse installation, scan the same ID card again on that panel.
+  4. Confirm `AccessResolved(access.maintenance_wing, Success)` is published
+     once.
+  5. Enter the Maintenance Wing only after that access succeeds.
 
   **Status:**
 
-  - **Done:** corrected same-reader runtime path and documentation.
-  - **Not done:** Maintenance Wing door/area trigger and Quest 1 completion.
-  - **Adjusted:** standalone card reader prototype is excluded from the agreed
-    flow.
-  - **Blocked:** final Control Panel prefab integration still requires attaching
-    the interaction adapter to the asset's `CardReader` child or its Collider
+  - **Done:** restored the Quest 1 second scan to the original Main Room
+    Control Panel.
+  - **Done:** deduplicated area-entry publication for compound Player
+    colliders.
+  - **Not done:** Maintenance Wing door presentation and final asset
+    integration.
+  - **Blocked:** final prefab integration still requires attaching the
+    interaction adapter to the asset's intended CardReader child or Collider
     owner.
 
   **Implementation note:** the prototype uses the existing typed
@@ -810,3 +1021,44 @@ handoff were reviewed before this change.
   and `Denied` result, preventing missing-item attempts from advancing Quest 1.
 - **Blocked:** the next objective requires an explicit inspection interaction
   design and remains out of this iteration.
+### 2026-10-18 — Quest 2 first Control Room scan
+
+**Implemented:**
+
+- Added `MaintenanceWingControlRoomAccessInteraction` to the existing
+  `MaintenanceWingControlPanel`.
+- The first scan requires recorded Maintenance Wing entry and the same
+  `item.id_card`.
+- The interaction publishes `PowerUnavailable` for
+  `access.control_room` and keeps the panel closed.
+- The ID Card is queried only; no `RemoveItem` call exists in this flow.
+- Repeated scans do not repeat the electrical-short transition.
+
+**Not implemented:**
+
+- Breaker Room repair.
+- Role denial after power restoration.
+- IT guide, hardware, role modification, final access, or door presentation.
+
+### 2026-10-18 — Quest 2 Breaker Panel prototype
+
+**Implemented:**
+
+- Added `BreakerPanelPrototypeInteraction` as a temporary scene interaction.
+- The breaker stays inactive until the Control Room scan publishes
+  `PowerUnavailable`.
+- Successful repair publishes the typed breaker interaction result.
+- Added `Quest2ObjectiveTracker` as the separate Quest 2 objective owner.
+- No Inventory mutation occurs during repair.
+
+**Not implemented:**
+
+- Final Breaker Room asset integration.
+- Power-restored presentation or electrical VFX/audio.
+- Role denial and later Control Room access steps.
+
+**Validation:**
+
+- C# build is required after this change.
+- Unity Play Mode must verify: inactive breaker before scan, one successful repair,
+  one Quest 2 objective completion, and `AlreadyCompleted` on repeat.

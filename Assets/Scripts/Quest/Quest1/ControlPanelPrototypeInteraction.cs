@@ -102,7 +102,7 @@ namespace GameDevelopmentProject.Quest
 
                         HasGrantedMaintenanceWingAccess = true;
                         Debug.Log(
-                            "Maintenance Wing access granted after second ID Card scan on the Control Panel reader.",
+                            "Maintenance Wing access granted after second ID Card scan on the Main Room Control Panel.",
                             this);
                         eventHub.PublishAccessResolved(
                             QuestGameplayIds.MaintenanceWingAccess,

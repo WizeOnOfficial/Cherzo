@@ -11,6 +11,7 @@ namespace GameDevelopmentProject.Quest
         public event Action<AccessEvent> AccessResolved;
         public event Action<AreaEnteredEvent> AreaEntered;
         public event Action<QuestObjectiveEvent> QuestObjectiveCompleted;
+        public event Action<AccessRoleModifiedEvent> AccessRoleModified;
 
         public void PublishItemAdded(string itemId, int amount)
         {
@@ -55,6 +56,51 @@ namespace GameDevelopmentProject.Quest
                 QuestObjectiveCompleted,
                 new QuestObjectiveEvent(questId, objectiveId),
                 nameof(QuestObjectiveCompleted));
+        }
+
+        public void PublishAccessRoleModified(
+            string accessSubjectId,
+            string permissionValue,
+            string roleId)
+        {
+            if (string.IsNullOrWhiteSpace(accessSubjectId))
+            {
+                Debug.LogError("Cannot publish AccessRoleModified: accessSubjectId is empty.");
+                return;
+            }
+
+            if (permissionValue != QuestGameplayIds.GuestPermission &&
+                permissionValue != QuestGameplayIds.ControlRoomAdministratorPermission)
+            {
+                Debug.LogError(
+                    $"Cannot publish AccessRoleModified: unsupported permission value '{permissionValue}'.");
+                return;
+            }
+
+            if (roleId != QuestGameplayIds.GuestRole &&
+                roleId != QuestGameplayIds.ControlRoomAdministratorRole)
+            {
+                Debug.LogError($"Cannot publish AccessRoleModified: unsupported role ID '{roleId}'.");
+                return;
+            }
+
+            bool isValidRolePermissionPair =
+                (permissionValue == QuestGameplayIds.GuestPermission &&
+                 roleId == QuestGameplayIds.GuestRole) ||
+                (permissionValue == QuestGameplayIds.ControlRoomAdministratorPermission &&
+                 roleId == QuestGameplayIds.ControlRoomAdministratorRole);
+
+            if (!isValidRolePermissionPair)
+            {
+                Debug.LogError(
+                    $"Cannot publish AccessRoleModified: permission '{permissionValue}' does not match role '{roleId}'.");
+                return;
+            }
+
+            Publish(
+                AccessRoleModified,
+                new AccessRoleModifiedEvent(accessSubjectId, permissionValue, roleId),
+                nameof(AccessRoleModified));
         }
 
         private static void PublishItemChanged(
