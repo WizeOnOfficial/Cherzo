@@ -37,14 +37,14 @@ namespace GameDevelopmentProject.Quest
 
             foreach (var inventoryItem in inventorySystem.inventory)
             {
-                if (inventoryItem == null || inventoryItem.data == null)
+                if (inventoryItem == null || inventoryItem.Data == null)
                 {
                     continue;
                 }
 
-                if (inventoryItem.data.id == itemId)
+                if (inventoryItem.Data.id == itemId)
                 {
-                    total += inventoryItem.stackSize;
+                    total += inventoryItem.StackSize;
                 }
             }
 

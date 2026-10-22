@@ -16,6 +16,15 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
             ? "Press E to Pickup"
             : inventoryAcquisition.AcquisitionGate.DeniedPrompt;
 
+    private void Awake()
+    {
+        if (pickupRigidbody == null)
+            pickupRigidbody = GetComponent<Rigidbody>();
+
+        if (pickupCollider == null)
+            pickupCollider = GetComponent<Collider>();
+    }
+
     public void Interact(InteractionController interactionController)
     {
         if (inventoryAcquisition != null)
@@ -34,7 +43,7 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
             return;
         }
 
-        var pickupController = interactionController.GetComponent<PickUpController>();
+        var pickupController = interactionController != null ? interactionController.GetComponent<PickUpController>() : null;
 
         Grab(pickupController);
 
@@ -46,18 +55,25 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
         transform.parent = null;
 
         SetPhysicsValues(false);
+        if (InventorySystem.current != null && referenceItem != null)
+        {
+            InventorySystem.current.Remove(referenceItem);
+        }
     }
 
     public void Grab(PickUpController pickUpController)
     {
-        if(pickUpController == null || pickUpController.HasPickup)
+        if (pickUpController == null || pickUpController.HasPickup)
         {
             return;
         }
 
-        pickUpController.GrabPickup(this);
-        //InventorySystem.current.Add(referenceItem);
-        // Destroy(this);
+        if (InventorySystem.current != null && referenceItem != null)
+        {
+            InventorySystem.current.Add(referenceItem);
+        }
+
+        Destroy(this.gameObject);
     }
 
     public void SetPositionInParent(Transform newParent)
@@ -65,6 +81,8 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
         transform.parent = newParent;
         transform.localPosition = pickupPositionOffset;
         transform.localRotation = Quaternion.identity;
+
+        SetPhysicsValues(true);
     }
 
     public void Use()
@@ -74,7 +92,14 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
 
     void SetPhysicsValues(bool wasPickedup)
     {
-        pickupRigidbody.isKinematic = wasPickedup;
-        pickupCollider.enabled = !wasPickedup;
+        if (pickupRigidbody != null)
+        {
+            pickupRigidbody.isKinematic = wasPickedup;
+        }
+
+        if (pickupCollider != null)
+        {
+            pickupCollider.enabled = !wasPickedup;
+        }
     }
 }

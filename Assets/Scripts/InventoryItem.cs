@@ -1,10 +1,17 @@
 using System;
+using UnityEngine;
 
 [Serializable]
 public class InventoryItem
 {
-    public InventoryItemData data { get; private set; }
-    public int stackSize { get; private set; }
+    [SerializeField] private InventoryItemData data;
+    [SerializeField] private int stackSize;
+
+    public InventoryItemData Data => data;
+    public int StackSize => stackSize;
+
+    // Backward-compatibility property getters for existing quest adapter code
+    public InventoryItemData itemData => data;
     
     public InventoryItem(InventoryItemData source)
     {
