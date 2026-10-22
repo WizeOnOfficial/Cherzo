@@ -106,6 +106,27 @@ namespace GameDevelopmentProject.UI
                 quitButton.onClick.RemoveListener(OnQuitClicked);
                 quitButton.onClick.AddListener(OnQuitClicked);
             }
+
+            // Auto-bind Back buttons in sub-panels
+            if (creditsPanel != null)
+            {
+                var backBtns = creditsPanel.GetComponentsInChildren<Button>(true);
+                foreach (var b in backBtns)
+                {
+                    b.onClick.RemoveListener(CloseSubPanels);
+                    b.onClick.AddListener(CloseSubPanels);
+                }
+            }
+
+            if (optionsPanel != null)
+            {
+                var backBtns = optionsPanel.GetComponentsInChildren<Button>(true);
+                foreach (var b in backBtns)
+                {
+                    b.onClick.RemoveListener(CloseSubPanels);
+                    b.onClick.AddListener(CloseSubPanels);
+                }
+            }
         }
 
         private Button FindButtonByName(string buttonName)
@@ -143,7 +164,6 @@ namespace GameDevelopmentProject.UI
         {
             if (optionsPanel != null)
             {
-                if (mainPanel != null) mainPanel.SetActive(false);
                 optionsPanel.SetActive(true);
             }
             else
@@ -157,7 +177,6 @@ namespace GameDevelopmentProject.UI
         {
             if (creditsPanel != null)
             {
-                if (mainPanel != null) mainPanel.SetActive(false);
                 creditsPanel.SetActive(true);
             }
             else
@@ -174,7 +193,10 @@ namespace GameDevelopmentProject.UI
 
             if (optionsPanel != null) optionsPanel.SetActive(false);
             if (creditsPanel != null) creditsPanel.SetActive(false);
-            if (mainPanel != null) mainPanel.SetActive(true);
+            if (mainPanel != null && mainPanel != gameObject && mainPanel != transform.root.gameObject)
+            {
+                mainPanel.SetActive(true);
+            }
 
             SaveSettings();
         }
@@ -312,36 +334,35 @@ namespace GameDevelopmentProject.UI
 
         private void DrawCreditsDialog()
         {
-            float w = 480f;
-            float h = 340f;
+            float w = 520f;
+            float h = 280f;
             var rect = new Rect((Screen.width - w) / 2f, (Screen.height - h) / 2f, w, h);
             GUI.Box(rect, GUIContent.none);
 
             var headerStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 18,
+                fontSize = 20,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
             headerStyle.normal.textColor = Color.cyan;
-            GUI.Label(new Rect(rect.x + 20f, rect.y + 20f, w - 40f, 30f), "FACILITY CONTROL: RECON", headerStyle);
+            GUI.Label(new Rect(rect.x + 20f, rect.y + 25f, w - 40f, 32f), "Anggota Tim:", headerStyle);
 
             var contentStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 13,
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 wordWrap = true
             };
             contentStyle.normal.textColor = Color.white;
 
             string creditsText =
-                "IF581 Game Development - Midterm Project\n\n" +
-                "Project Lead & Systems Architecture:\nWilson & Partner\n\n" +
-                "Gameplay Engineering & Quest Design:\nDecoupled Event-Driven Architecture\n\n" +
-                "Environment & Visuals:\nAurick Assets & Custom Shaders\n\n" +
-                "Built with Unity 6 (URP)";
+                "Alfred Wilson Kwan (00000105204)\n\n" +
+                "Aurick Tantyrone (00000109253)\n\n" +
+                "Victor Chandra (00000108273)";
 
-            GUI.Label(new Rect(rect.x + 25f, rect.y + 60f, w - 50f, 200f), creditsText, contentStyle);
+            GUI.Label(new Rect(rect.x + 20f, rect.y + 70f, w - 40f, 130f), creditsText, contentStyle);
 
             if (GUI.Button(new Rect(rect.x + (w - 150f) / 2f, rect.y + h - 55f, 150f, 35f), "BACK"))
             {

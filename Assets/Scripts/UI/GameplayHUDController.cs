@@ -394,6 +394,22 @@ namespace GameDevelopmentProject.UI
             UnlockCursor();
         }
 
+        [ContextMenu("Set Timer to 5 Seconds (Quick Test)")]
+        public void SetTimerTo5Seconds()
+        {
+            timeRemainingSeconds = 5f;
+            Debug.Log("[GameplayHUDController] Timer set to 5 seconds for rapid testing.", this);
+        }
+
+        [ContextMenu("Trigger Lose Now (Instant Test)")]
+        public void TriggerLoseNow()
+        {
+            timeRemainingSeconds = 0f;
+            UpdateTimerDisplay();
+            TriggerLoseCondition();
+            Debug.Log("[GameplayHUDController] Lose condition triggered manually via ContextMenu.", this);
+        }
+
         private void UnlockCursor()
         {
             Cursor.lockState = CursorLockMode.None;
