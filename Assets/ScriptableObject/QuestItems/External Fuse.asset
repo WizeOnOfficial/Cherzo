@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemData
   id: item.external_fuse
   displayName: External Fuse
-  icon: {fileID: 0}
+  icon: {fileID: -4500920192171065606, guid: b757ca32dc98c9947b22a323c226d2d9, type: 3}
   prefab: {fileID: 0}

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 10b12473cdf35dc44b4ee328b33112c7
+guid: b757ca32dc98c9947b22a323c226d2d9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8487038621201926113
-    second: CubeIcon_0
+      213: -4500920192171065606
+    second: FuseIcon_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CubeIcon_0
+      name: FuseIcon_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1e703c3e8a408c570800000000000000
-      internalID: 8487038621201926113
+      spriteID: afeb24f9ee48981c0800000000000000
+      internalID: -4500920192171065606
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CubeIcon_0: 8487038621201926113
+      FuseIcon_0: -4500920192171065606
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

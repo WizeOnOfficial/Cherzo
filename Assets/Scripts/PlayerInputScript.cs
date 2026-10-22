@@ -28,6 +28,8 @@ public class PlayerInputScript : MonoBehaviour
     bool isRunning;
     bool isFatigued;
     bool isMovementLocked;
+    bool isMoving;
+    Animator anim;
 
     public bool IsRunning => isRunning;
     public bool IsFatigued => isFatigued;
@@ -43,6 +45,7 @@ public class PlayerInputScript : MonoBehaviour
         Cursor.visible = false;
         isMovementLocked = false;
 
+        anim = this.GetComponent<Animator>();
         if (baseSpeed <= 0.1f) baseSpeed = 3.0f;
         if (sprintSpeed <= 0.1f) sprintSpeed = 5.5f;
         if (maxStamina <= 0.1f) maxStamina = 100f;

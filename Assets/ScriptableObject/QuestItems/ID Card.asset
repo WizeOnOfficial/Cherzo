@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemData
   id: item.id_card
   displayName: ID Card
-  icon: {fileID: 0}
+  icon: {fileID: -8819266641599732354, guid: 5bfa8c3b42020bf419dd31a0aada9e6a, type: 3}
   prefab: {fileID: 0}
