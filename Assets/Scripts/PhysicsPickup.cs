@@ -8,7 +8,16 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
 
     public InventoryItemData referenceItem;
 
-    public string InteractMsg => "Press E to Pickup";
+    public string InteractMsg => "Press LMB to Pickup";
+
+    private void Awake()
+    {
+        if (pickupRigidbody == null)
+            pickupRigidbody = GetComponent<Rigidbody>();
+
+        if (pickupCollider == null)
+            pickupCollider = GetComponent<Collider>();
+    }
 
     public void Interact(InteractionController interactionController)
     {
@@ -24,6 +33,7 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
         transform.parent = null;
 
         SetPhysicsValues(false);
+        InventorySystem.current.Remove(referenceItem);
     }
 
     public void Grab(PickUpController pickUpController)
@@ -33,9 +43,8 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
             return;
         }
 
-        pickUpController.GrabPickup(this);
-        // InventorySystem.current.Add(referenceItem);
-        // Destroy(this);
+        InventorySystem.current.Add(referenceItem);
+        Destroy(this.gameObject);
     }
 
     public void SetPositionInParent(Transform newParent)
@@ -43,6 +52,8 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
         transform.parent = newParent;
         transform.localPosition = pickupPositionOffset;
         transform.localRotation = Quaternion.identity;
+
+        SetPhysicsValues(true);
     }
 
     public void Use()

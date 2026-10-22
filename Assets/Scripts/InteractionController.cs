@@ -41,7 +41,7 @@ public class InteractionController : MonoBehaviour
 
     void CheckForInteractionInput()
     {
-        if(Keyboard.current.eKey.wasPressedThisFrame && currentTargetedInteractable != null)
+        if(Mouse.current.leftButton.wasPressedThisFrame && currentTargetedInteractable != null)
         {
             currentTargetedInteractable.Interact(this);
         }

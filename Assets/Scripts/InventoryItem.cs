@@ -2,10 +2,13 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class InventoryItem : MonoBehaviour
+public class InventoryItem
 {
-    public InventoryItemData data { get; private set; }
-    public int stackSize { get; private set; }
+    [SerializeField] private InventoryItemData data;
+    [SerializeField] private int stackSize;
+
+    public InventoryItemData Data => data;
+    public int StackSize => stackSize;
     
     public InventoryItem(InventoryItemData source)
     {
