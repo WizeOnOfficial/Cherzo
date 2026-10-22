@@ -1,72 +1,82 @@
-# Panduan Integrasi Aset 3D & Alur Quest 1–2 (Map Baru & TestScene)
+# Master Integration & Exam Rubric Execution Guide (Quest 1 & Quest 2)
 
-**Target Selesai:** < 5–30 Menit  
-**Fokus:** Menghubungkan seluruh aset 3D baru (model & map dari Aurick) ke dalam alur logika Quest 1 dan Quest 2 tanpa merusak kontrak kode yang ada, menggunakan Player bawaan (capsule/hero standar).
-
----
-
-## 1. Pemilihan Scene untuk Integrasi
-
-Teman Anda (Aurick) telah menyusun peta ruangan lengkap di:  
-📍 **`Assets/Scenes/AurickAssets.unity`**  
-Di dalam scene map tersebut sudah terdapat ruangan-ruangan nyata:
-- `ControlPanel` (Konsol utama)
-- `PintuJanitor` (Ruang sekring)
-- `ControlListrik` (Panel sekring daya)
-- `ITCenter` (Ruang server dan terminal komputer)
-- `PintuConRoom` (Pintu akses ke Control Room)
-- `Player` (Hero kapsul standar)
-
-Untuk menjaga **keamanan 100% (Zero Risk)**:
-- Kami telah membuatkan menu otomatis di Unity Editor yang **mengkloning map tersebut menjadi scene baru**:
-  📍 **`Assets/Scenes/MainGameScene.unity`**
-- Scene asli teman Anda (`AurickAssets.unity`) dan scene lama (`TestScene.unity`) **tetap 100% aman dan tidak tersentuh**.
+**Tanggal:** 2026-10-22  
+**Target:** Penyelesaian Penuh Alur Game (UTS Lab IF581: 100/100 Poin)  
+**Status Scene:** `Assets/Scenes/AurickAssets.unity` (Peta Utama) & `Assets/Scenes/MainMenuScene.unity` (Wilson/Menu)
 
 ---
 
-## 2. Pemetaan Lengkap Alur Quest 1 & Quest 2 di Map Asli
+## 1. Pemetaan Target Nilai UTS Lab (100 Poin)
 
-### A. Alur Quest 1 — Main Lobby Menuju Maintenance Wing
-
-| Langkah | Objektif | Lokasi di Map | Komponen Logika Wajib | Kondisi / Trigger |
-|---|---|---|---|---|
-| **1.1** | Ambil ID Card | Di depan Player / Meja Lobby (`keycard.fbx`) | `PhysicsPickup`, `BoxCollider`, `Rigidbody`, `InventoryPickupAcquisition` | Player menekan `E`. Kartu masuk ke Inventory (`item.id_card`). |
-| **1.2** | Coba Akses Control Panel | Pada objek `ControlPanel` di Map | `ControlPanelPrototypeInteraction`, `BoxCollider` | Tekan `E`. Sistem menolak akses pertama kali (`Denied`). |
-| **1.3** | Inspeksi Control Panel | Pada objek `ControlPanel` | `ControlPanelPrototypeInteraction` | Tekan `E` kedua kali. Menerbitkan event `ControlPanelInspected`. |
-| **1.4** | Temukan Hidden Message | Dekat `ControlPanel` (`White_Boards.fbx`) | `HiddenMessagePrototypeInteraction`, `BoxCollider` | Menjadi aktif setelah inspeksi panel. Tekan `E` untuk membaca pesan rahasia lokasi sekring. |
-| **1.5** | Ambil External Fuse | Di dekat `PintuJanitor` (`fuse.fbx`) | `PhysicsPickup`, `InteractionCompletedPickupGate`, `BoxCollider`, `Rigidbody` | Fuse di Janitor Room terbuka kuncinya setelah pesan ditemukan. Tekan `E` untuk mengambil. |
-| **1.6** | Pasang Fuse di Panel | Pada `ControlPanel` | `ControlPanelPrototypeInteraction` | Tekan `E` di panel kontrol. Fuse dikonsumsi (`FuseInstalled`). |
-| **1.7** | Scan Ulang ID Card | Pada `ControlPanel` atau Card Reader Lorong | `ControlPanelPrototypeInteraction` / Card Reader | Tekan `E`. Akses dibuka: `MaintenanceWingAccessGranted`. |
-| **1.8** | Masuk Maintenance Wing | Lorong Sayap Perawatan | `MaintenanceWingAreaTrigger`, `BoxCollider (isTrigger)` | Player berjalan melewati pintu/lorong. Event `MaintenanceWingEntered` terbit. **Quest 1 Selesai!** |
+| Rubrik | Bobot | Target Implementasi & Bukti Kerja |
+|---|---|---|
+| **Question 1: Gameplay & Win/Lose Flow** | **20%** | • Gameplay utuh Quest 1 & 2 dari Lobby hingga Control Room.<br>• Bebas error runtime / crash.<br>• **Win Screen**: Tampil saat masuk Control Room.<br>• **Lose Screen**: Tampil jika timer 20 menit habis.<br>• **Unbroken Flow**: Tombol "Restart" dan "Main Menu" melooping tanpa henti/bug. |
+| **Question 2: Responsive UI (Life, Score, Time)** | **15%** | • Main Menu UI (Dikerjakan Wilson di `MainMenuScene`).<br>• Gameplay HUD: **Health (100 HP)**, **Score (+50 s/d +350)**, **Countdown Timer (20:00)**, dan **Objective Text**.<br>• Responsive: Canvas Scaler `Scale With Screen Size (1920x1080, match 0.5)`. |
+| **Question 3: 3D Models & Primitive Structure** | **15%** | • Seluruh lingkungan 3D fasilitas Aurick rapi.<br>• Player capsule tertata rapi dalam hierarki.<br>• Hirarki scene dikelompokkan dalam root folder bersih (`GameplaySystems`, `Interactables`, `Environment`, `UI`). |
+| **Question 4: Zero Bug Presentation** | **20%** | • Seluruh input (`Keyboard.current`, `Mouse.current`), raycast, dan event dilindungi null check.<br>• Zero null-reference exceptions di Unity Console. |
+| **Question 5: Animated Objects (Min. 2 Objek)** | **15%** | • **Objek 1 (Sliding Doors)**: `PintuMasuk` & `PintuConRoom` bergeser mulus ke samping saat scan kartu disetujui.<br>• **Objek 2 (Floating Items)**: `keycard` & `Fuse` melayang naik-turun dan berputar perlahan di udara saat belum diambil. |
+| **Question 6: Kontrol Responsif & Mudah** | **15%** | • Gerakan First-Person halus (WASD + Mouse Look clamped + Sprint Shift + Stamina).<br>• Tombol `E` / Klik Kiri untuk interaksi raycast.<br>• Tombol `Tab` buka/tutup inventory Wilson.<br>• Tombol `Q` drop barang yang dipegang. |
 
 ---
 
-### B. Alur Quest 2 — Maintenance Wing Menuju Control Room
+## 2. Status Aset Fisik Aurick (`AurickAssets.unity`)
 
-| Langkah | Objektif | Lokasi di Map | Komponen Logika Wajib | Kondisi / Trigger |
-|---|---|---|---|---|
-| **2.1** | Scan ID Card di Scanner Pintu | Di samping `PintuConRoom` (`handscanner.fbx`) | `MaintenanceWingControlRoomAccessInteraction`, `BoxCollider` | Scan pertama kali mendeteksi konsleting listrik (`PowerUnavailable`). |
-| **2.2** | Perbaiki Panel Sekring Listrik | Pada objek `ControlListrik` di Map | `BreakerPanelPrototypeInteraction`, `BoxCollider` | Panel sekring aktif. Tekan `E` untuk memperbaiki listrik (`BreakerRepaired`). |
-| **2.3** | Scan Ulang & Penolakan Role | Di samping `PintuConRoom` | `MaintenanceWingControlRoomAccessInteraction` | Daya sudah ada, tapi kartu hanya level Guest (`r--`). Akses ditolak karena role kurang (`quest.2.role_denied`). |
-| **2.4** | Temukan IT Guide | Di dalam area `ITCenter` | `PhysicsPickup`, `Quest2ObjectivePickupGate`, `BoxCollider` | Panduan IT terbuka setelah penolakan role. Tekan `E` untuk mengambil panduan IT. |
-| **2.5** | Hubungkan Hardware Akses | Di rak server `ITCenter` (`serverrack 1.fbx`) | `HardwareConnectionPrototypeInteraction`, `BoxCollider` | Tekan `E` di rak server untuk menghubungkan modul hardware ke terminal IT. |
-| **2.6** | Modifikasi Role via Terminal IT | Di PC `ITCenter` (`komputer.fbx`) | `ITDesktopTerminalInteraction`, `VirtualTerminalUI`, `VirtualTerminalCommandParser` | Tekan `E` pada monitor PC untuk membuka terminal Linux simulasi. Ketik: `chmod u=rwx id_card`. Role berubah menjadi Administrator! |
-| **2.7** | Scan Kartu Terakhir Kali | Di samping `PintuConRoom` | `MaintenanceWingControlRoomAccessInteraction` | Role sudah `rwx`. Pintu Control Room terbuka (`ControlRoomAccessGranted`)! |
-| **2.8** | Masuk ke Control Room | Masuk melintasi `PintuConRoom` | Ambang Pintu Control Room | Melintasi ambang pintu. **Sprint 1 Complete (Win Screen)!** |
+Berdasarkan audit commit terbaru `a5bb56b` (*pembetulan assets*), seluruh objek quest sudah berada di posisi yang benar:
+
+1. **Player**: Kapsul standar di Lobby `{x: 0, y: 1.5, z: 0}`.
+2. **Keycard**: `{x: -4.284, y: 1.017, z: 0.304}` (Di atas meja/lantai Main Lobby).
+3. **Scanner Lobby**: `{x: 1.105, y: 1.09, z: 10.838}` (Di sebelah kanan `PintuMasuk`).
+4. **PintuMasuk**: `{x: -0.03, y: 1.563, z: 9.817}` (Pintu geser penghubung Lobby & Koridor).
+5. **Fuse (Sekring)**: `{x: 5.957, y: 1.666, z: 1.203}` (Di dalam ruangan Janitor).
+6. **SwitchListrik (Panel Breaker)**: Di ruangan Janitor / kelistrikan.
+7. **PintuITRoom**: `{x: 6.568, y: 1.563, z: 16.26}` (Akses ke Ruang Server IT).
+8. **Server(untukUbahKeycard)** & **komputer**: Di dalam Ruang IT.
+9. **PintuConRoom**: `{x: -6.82, y: 1.56, z: 20.66}` (Pintu geser akses Ruang Kontrol Utama).
+10. **handscanner(buatRoomNextLvlAja)**: Di sebelah `PintuConRoom`.
 
 ---
 
-## 3. Langkah Menjalankan di Unity Editor (Menu 1-Klik)
+## 3. Desain Komponen & Isolasi Modul
 
-Di Unity Editor, menu bar atas telah menyediakan opsi:
+Untuk menghindari merge conflict dengan Wilson (yang sedang menangani `MainMenuScene`), seluruh pekerjaan di langkah ini diisolasi ke dalam script baru dan penataan scene `AurickAssets`:
 
-1. **Pilihan 1 (Paling Direkomendasikan):**
-   - Klik: **`Quest > 1. Buat Scene Baru Dari Map & Pasang Quest (Sangat Direkomendasikan)`**
-   - Unity akan otomatis menduplikasi map teman Anda menjadi `Assets/Scenes/MainGameScene.unity` dan langsung memasang seluruh komponen interaksi serta text UI "Press E to...".
-2. **Pilihan 2 (Pasang di Scene yang Sedang Anda Buka):**
-   - Buka scene manapun yang Anda inginkan di Unity.
-   - Klik: **`Quest > 2. Pasang Quest di Scene yang Sedang Dibuka (Active Scene)`**
-3. **Pilihan 3 (Pasang di TestScene Lama):**
-   - Klik: **`Quest > 3. Pasang Quest di TestScene (Scene Prototype Lama)`**
+### A. Animasi Objek
+1. `Assets/Scripts/Animation/SlidingDoorController.cs`:
+   - Menggeser posisi pintu lokal saat `OpenDoor()` dipanggil.
+   - Menggunakan interpolasi halus (`Vector3.MoveTowards` / `SmoothDamp`).
+   - Mencegah pintu terbuka jika belum diotorisasi (`isLocked = true`).
+2. `Assets/Scripts/Animation/FloatingItemAnimation.cs`:
+   - Menggerakkan item melayang naik-turun (`Mathf.Sin`) dan rotasi Y (`Vector3.up * speed * Time.deltaTime`).
+   - Otomatis mati saat objek diambil ke tangan/inventory.
 
-Setelah itu, tinggal tekan tombol **Play** di Unity Editor untuk mencoba memainkannya!
+### B. Responsive HUD & Timer
+1. `Assets/Scripts/UI/GameplayHUDController.cs`:
+   - **Countdown Timer**: 20 Menit (1200 detik).
+   - **Health Bar & Text**: 100 / 100.
+   - **Score Display**: Poin terakumulasi dari tiap misi.
+   - **Objective Text**: Menjelaskan instruksi langkah saat ini.
+   - **Win Modal**: Muncul saat memicu Win Trigger di Ruang Kontrol.
+   - **Lose Modal**: Muncul saat waktu 20 menit habis.
+   - Membuka mouse cursor (`Cursor.lockState = CursorLockMode.None`, `Cursor.visible = true`) saat Win/Lose aktif.
+
+### C. Alur Logika Pintu & Scanner (Strict Authorization)
+- Pintu **TIDAK AKAN PERNAH** terbuka jika scan belum berstatus `Access Granted`:
+  - `scannerlobby`: Memeriksa keberadaan `id_card`. Jika ada -> `Access Granted` -> `PintuMasuk.OpenDoor()`. Jika tidak -> `Access Denied`.
+  - `handscanner(buatRoomNextLvlAja)`: Memeriksa apakah `id_card` sudah memiliki hak akses Level 2 (`rwx` dari terminal `chmod`). Jika belum -> `Access Denied` (Listrik mati / Role tidak cukup). Hanya setelah `chmod` di terminal selesai, scanner akan `Access Granted` -> `PintuConRoom.OpenDoor()`.
+
+---
+
+## 4. Keamanan Integrasi Model Karakter Masa Depan
+
+Struktur Player saat ini:
+- Root: `Player` (`Rigidbody`, `CapsuleCollider`, `PlayerInputScript`, `InteractionController`, `PickUpController`).
+- Children:
+  - `PlayerCamera` (Cinemachine)
+  - `pickupHolder` (Socket penahan item di depan kamera)
+  - `Capsule` (Visual visualizer sementara)
+
+Ketika model 3D karakter beranimasi siap:
+1. Taruh prefab karakter 3D sebagai child dari `Player`.
+2. Disable komponen `MeshRenderer` pada `Capsule`.
+3. Pasang parameter float `Speed` pada Animator dari `PlayerInputScript.movementSpeed`.
+4. Seluruh interaksi raycast, inventory, trigger pintu, dan timer **tetap berfungsi 100% tanpa ubahan**.

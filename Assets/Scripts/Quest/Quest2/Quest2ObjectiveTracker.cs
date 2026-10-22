@@ -5,6 +5,7 @@ namespace GameDevelopmentProject.Quest
     public sealed class Quest2ObjectiveTracker : MonoBehaviour
     {
         [SerializeField] private GameplayEventHub eventHub;
+        [SerializeField] private InventoryCompatibilityAdapter inventoryQuery;
 
         public bool HasRepairedElectricalShort { get; private set; }
         public bool HasReceivedRoleDenial { get; private set; }
@@ -12,11 +13,17 @@ namespace GameDevelopmentProject.Quest
         public bool HasConnectedHardware { get; private set; }
         public bool HasModifiedAccessRole { get; private set; }
 
+        private void Awake()
+        {
+            EnsureDependencies();
+        }
+
         private void OnEnable()
         {
+            EnsureDependencies();
+
             if (eventHub == null)
             {
-                Debug.LogError($"{nameof(Quest2ObjectiveTracker)} requires a GameplayEventHub reference.", this);
                 return;
             }
 
@@ -25,6 +32,43 @@ namespace GameDevelopmentProject.Quest
             eventHub.AccessResolved += HandleAccessResolved;
             eventHub.ItemAdded += HandleItemAdded;
             eventHub.AccessRoleModified += HandleAccessRoleModified;
+            RefreshFromInventory();
+        }
+
+        private void EnsureDependencies()
+        {
+            if (eventHub == null)
+            {
+                eventHub = GetComponent<GameplayEventHub>() ?? FindFirstObjectByType<GameplayEventHub>();
+            }
+
+            if (inventoryQuery == null)
+            {
+                inventoryQuery = GetComponent<InventoryCompatibilityAdapter>() ?? FindFirstObjectByType<InventoryCompatibilityAdapter>();
+            }
+        }
+
+        private void RefreshFromInventory()
+        {
+            if (inventoryQuery == null)
+            {
+                EnsureDependencies();
+            }
+
+            if (inventoryQuery != null && inventoryQuery.HasItem(QuestGameplayIds.GuideItem))
+            {
+                if (!HasFoundItGuide)
+                {
+                    HasFoundItGuide = true;
+                    Debug.Log("Quest 2 objective completed: IT Guide verified in inventory.", this);
+                    if (eventHub != null)
+                    {
+                        eventHub.PublishQuestObjectiveCompleted(
+                            QuestGameplayIds.Quest2,
+                            QuestGameplayIds.Quest2FindItGuide);
+                    }
+                }
+            }
         }
 
         private void OnDisable()
@@ -94,10 +138,14 @@ namespace GameDevelopmentProject.Quest
         {
             if (interactionEvent.InteractionId != QuestGameplayIds.HardwareConnection ||
                 interactionEvent.Result != GameplayInteractionResult.Success ||
-                !HasFoundItGuide ||
                 HasConnectedHardware)
             {
                 return;
+            }
+
+            if (!HasFoundItGuide)
+            {
+                RefreshFromInventory();
             }
 
             HasConnectedHardware = true;

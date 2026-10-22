@@ -8,16 +8,46 @@ namespace GameDevelopmentProject.Quest
         [SerializeField] private GameplayEventHub eventHub;
         [SerializeField] private InventoryCompatibilityAdapter inventoryQuery;
 
+        [SerializeField] private GameDevelopmentProject.Animation.SlidingDoorController doorToOpen;
+
         private bool hasEnteredMaintenanceWing;
         private bool hasReportedPowerUnavailable;
         private bool hasPowerBeenRestored;
         private bool hasReportedRoleDenied;
+        private bool hasRoleBeenUpgraded;
+        private bool hasGrantedAccess;
 
-        public string InteractMsg => hasReportedRoleDenied
-            ? "Access denied. ID Card role is insufficient."
-            : hasReportedPowerUnavailable && !hasPowerBeenRestored
-            ? "Power unavailable. Repair required."
-            : "Press E to Scan ID Card";
+        public bool HasGrantedAccess => hasGrantedAccess;
+
+        public string InteractMsg
+        {
+            get
+            {
+                if (!hasRoleBeenUpgraded)
+                {
+                    var parser = FindFirstObjectByType<VirtualTerminalCommandParser>();
+                    if (parser != null && parser.HasModifiedAccessRole)
+                    {
+                        hasRoleBeenUpgraded = true;
+                    }
+                    var q2 = FindFirstObjectByType<Quest2ObjectiveTracker>();
+                    if (q2 != null && q2.HasModifiedAccessRole)
+                    {
+                        hasRoleBeenUpgraded = true;
+                    }
+                }
+
+                return hasGrantedAccess
+                    ? "Control Room Access Granted"
+                    : hasRoleBeenUpgraded
+                    ? "Press E to Scan Administrator ID Card"
+                    : hasReportedRoleDenied
+                    ? "Access denied. ID Card role is insufficient."
+                    : hasReportedPowerUnavailable && !hasPowerBeenRestored
+                    ? "Power unavailable. Repair required."
+                    : "Press E to Scan ID Card";
+            }
+        }
 
         public void Interact(InteractionController interactionController)
         {
@@ -26,16 +56,40 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
+            if (hasGrantedAccess)
+            {
+                if (doorToOpen != null && !doorToOpen.IsOpen)
+                {
+                    doorToOpen.OpenDoor();
+                }
+                var altDoor = (doorToOpen != null && doorToOpen.gameObject.name == "PintuConPan")
+                    ? GameObject.Find("PintuConRoom")?.GetComponent<GameDevelopmentProject.Animation.SlidingDoorController>()
+                    : GameObject.Find("PintuConPan")?.GetComponent<GameDevelopmentProject.Animation.SlidingDoorController>();
+                if (altDoor != null && !altDoor.IsOpen)
+                {
+                    altDoor.OpenDoor();
+                }
+                return;
+            }
+
             if (!hasEnteredMaintenanceWing)
             {
-                Debug.Log(
-                    "Control Room access denied. Reason: Maintenance Wing entry has not been recorded.",
-                    this);
-                eventHub.PublishAccessResolved(
-                    QuestGameplayIds.ControlRoom,
-                    GameplayInteractionResult.Denied,
-                    "Maintenance Wing entry is required.");
-                return;
+                var q1 = FindFirstObjectByType<Quest1ObjectiveTracker>();
+                if (q1 != null && q1.HasScannedIdCardAfterFuse)
+                {
+                    hasEnteredMaintenanceWing = true;
+                }
+                else
+                {
+                    Debug.Log(
+                        "Control Room access denied. Reason: Maintenance Wing entry has not been recorded.",
+                        this);
+                    eventHub.PublishAccessResolved(
+                        QuestGameplayIds.ControlRoom,
+                        GameplayInteractionResult.Denied,
+                        "Maintenance Wing entry is required.");
+                    return;
+                }
             }
 
             if (!inventoryQuery.HasItem(QuestGameplayIds.IdCardItem))
@@ -75,6 +129,43 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
+            if (!hasRoleBeenUpgraded)
+            {
+                var parser = FindFirstObjectByType<VirtualTerminalCommandParser>();
+                if (parser != null && parser.HasModifiedAccessRole)
+                {
+                    hasRoleBeenUpgraded = true;
+                }
+                var q2 = FindFirstObjectByType<Quest2ObjectiveTracker>();
+                if (q2 != null && q2.HasModifiedAccessRole)
+                {
+                    hasRoleBeenUpgraded = true;
+                }
+            }
+
+            if (hasRoleBeenUpgraded)
+            {
+                hasGrantedAccess = true;
+                Debug.Log("Control Room access granted! Administrator privileges confirmed.", this);
+                eventHub.PublishAccessResolved(
+                    QuestGameplayIds.ControlRoom,
+                    GameplayInteractionResult.Success,
+                    "Control Room access granted.");
+
+                if (doorToOpen != null)
+                {
+                    doorToOpen.OpenDoor();
+                }
+                var altDoor = (doorToOpen != null && doorToOpen.gameObject.name == "PintuConPan")
+                    ? GameObject.Find("PintuConRoom")?.GetComponent<GameDevelopmentProject.Animation.SlidingDoorController>()
+                    : GameObject.Find("PintuConPan")?.GetComponent<GameDevelopmentProject.Animation.SlidingDoorController>();
+                if (altDoor != null && !altDoor.IsOpen)
+                {
+                    altDoor.OpenDoor();
+                }
+                return;
+            }
+
             if (hasReportedRoleDenied)
             {
                 Debug.Log(
@@ -109,6 +200,16 @@ namespace GameDevelopmentProject.Quest
             Debug.Log("Control Room panel power state is restored after breaker repair.", this);
         }
 
+        private void HandleAccessRoleModified(AccessRoleModifiedEvent roleEvent)
+        {
+            if (roleEvent.AccessSubjectId == QuestGameplayIds.IdCardAccessSubject &&
+                roleEvent.PermissionValue == QuestGameplayIds.ControlRoomAdministratorPermission)
+            {
+                hasRoleBeenUpgraded = true;
+                Debug.Log("Control Room scanner received administrator credential update.", this);
+            }
+        }
+
         private void HandleAreaEntered(AreaEnteredEvent areaEnteredEvent)
         {
             if (areaEnteredEvent.AreaId != QuestGameplayIds.MaintenanceWing)
@@ -121,27 +222,40 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
-            if (eventHub == null)
-            {
-                Debug.LogError(
-                    $"{nameof(MaintenanceWingControlRoomAccessInteraction)} requires a GameplayEventHub reference.",
-                    this);
-            }
-
-            if (inventoryQuery == null)
-            {
-                Debug.LogError(
-                    $"{nameof(MaintenanceWingControlRoomAccessInteraction)} requires an inventory query reference.",
-                    this);
-            }
+            EnsureDependencies();
         }
 
         private void OnEnable()
         {
+            EnsureDependencies();
+
             if (eventHub != null)
             {
                 eventHub.AreaEntered += HandleAreaEntered;
                 eventHub.InteractionCompleted += HandleInteractionCompleted;
+                eventHub.AccessRoleModified += HandleAccessRoleModified;
+            }
+        }
+
+        private void EnsureDependencies()
+        {
+            if (eventHub == null)
+            {
+                eventHub = FindFirstObjectByType<GameplayEventHub>();
+            }
+
+            if (inventoryQuery == null)
+            {
+                inventoryQuery = FindFirstObjectByType<InventoryCompatibilityAdapter>();
+            }
+
+            if (doorToOpen == null)
+            {
+                var doorObj = GameObject.Find("PintuConPan") ?? GameObject.Find("PintuConRoom");
+                if (doorObj != null)
+                {
+                    doorToOpen = doorObj.GetComponent<GameDevelopmentProject.Animation.SlidingDoorController>();
+                }
             }
         }
 
@@ -151,6 +265,7 @@ namespace GameDevelopmentProject.Quest
             {
                 eventHub.AreaEntered -= HandleAreaEntered;
                 eventHub.InteractionCompleted -= HandleInteractionCompleted;
+                eventHub.AccessRoleModified -= HandleAccessRoleModified;
             }
         }
     }

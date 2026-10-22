@@ -8,11 +8,27 @@ namespace GameDevelopmentProject.Quest
         [SerializeField] private Quest2ObjectiveTracker quest2Tracker;
         [SerializeField] private VirtualTerminalUI terminalUI;
 
+        private bool IsHardwareConnected()
+        {
+            if (quest2Tracker != null && quest2Tracker.HasConnectedHardware)
+            {
+                return true;
+            }
+
+            var hw = FindFirstObjectByType<HardwareConnectionPrototypeInteraction>();
+            return hw != null && hw.HasConnectedHardware;
+        }
+
         public string InteractMsg
         {
             get
             {
-                if (quest2Tracker == null || !quest2Tracker.HasConnectedHardware)
+                if (quest2Tracker == null || terminalUI == null)
+                {
+                    EnsureDependencies();
+                }
+
+                if (!IsHardwareConnected())
                 {
                     return "Connect the access hardware first";
                 }
@@ -25,7 +41,12 @@ namespace GameDevelopmentProject.Quest
 
         public void Interact(InteractionController interactionController)
         {
-            if (quest2Tracker == null || !quest2Tracker.HasConnectedHardware)
+            if (quest2Tracker == null || terminalUI == null)
+            {
+                EnsureDependencies();
+            }
+
+            if (!IsHardwareConnected())
             {
                 Debug.Log("IT terminal is unavailable until hardware is connected.", this);
                 return;
@@ -33,27 +54,30 @@ namespace GameDevelopmentProject.Quest
 
             if (terminalUI == null)
             {
-                Debug.LogError($"{nameof(ITDesktopTerminalInteraction)} requires a terminal UI reference.", this);
-                return;
+                terminalUI = FindFirstObjectByType<VirtualTerminalUI>();
             }
 
-            terminalUI.Open();
+            if (terminalUI != null)
+            {
+                terminalUI.Open();
+            }
         }
 
         private void Awake()
         {
+            EnsureDependencies();
+        }
+
+        private void EnsureDependencies()
+        {
             if (quest2Tracker == null)
             {
-                Debug.LogError(
-                    $"{nameof(ITDesktopTerminalInteraction)} requires a Quest 2 tracker reference.",
-                    this);
+                quest2Tracker = FindFirstObjectByType<Quest2ObjectiveTracker>();
             }
 
             if (terminalUI == null)
             {
-                Debug.LogError(
-                    $"{nameof(ITDesktopTerminalInteraction)} requires a terminal UI reference.",
-                    this);
+                terminalUI = FindFirstObjectByType<VirtualTerminalUI>();
             }
         }
     }

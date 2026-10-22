@@ -12,34 +12,39 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
+            EnsureDependencies();
+        }
+
+        private void EnsureDependencies()
+        {
             if (eventHub == null)
             {
-                Debug.LogError($"{nameof(MaintenanceWingAreaTrigger)} requires a GameplayEventHub reference.", this);
+                eventHub = FindFirstObjectByType<GameplayEventHub>();
             }
 
             if (playerRoot == null)
             {
-                Debug.LogError($"{nameof(MaintenanceWingAreaTrigger)} requires a player root reference.", this);
-            }
-            else if (playerRoot.GetComponent<Rigidbody>() == null)
-            {
-                Debug.LogError(
-                    $"{nameof(MaintenanceWingAreaTrigger)} requires the configured player root to have a Rigidbody. " +
-                    "Use a kinematic Rigidbody for transform-driven movement.",
-                    this);
+                var player = GameObject.FindWithTag("Player") ?? GameObject.Find("Player");
+                if (player != null)
+                {
+                    playerRoot = player.transform;
+                }
             }
 
             var triggerCollider = GetComponent<Collider>();
-            if (triggerCollider == null || !triggerCollider.isTrigger)
+            if (triggerCollider != null && !triggerCollider.isTrigger)
             {
-                Debug.LogError(
-                    $"{nameof(MaintenanceWingAreaTrigger)} requires a Collider with Is Trigger enabled on the same GameObject.",
-                    this);
+                triggerCollider.isTrigger = true;
             }
         }
 
         private void OnTriggerEnter(Collider other)
         {
+            if (eventHub == null || playerRoot == null)
+            {
+                EnsureDependencies();
+            }
+
             if (eventHub == null || playerRoot == null)
             {
                 return;

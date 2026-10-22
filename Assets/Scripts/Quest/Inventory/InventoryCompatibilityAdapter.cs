@@ -23,7 +23,12 @@ namespace GameDevelopmentProject.Quest
 
             if (inventorySystem == null)
             {
-                Debug.LogError($"{nameof(InventoryCompatibilityAdapter)} has no InventorySystem reference.", this);
+                EnsureReferences();
+            }
+
+            if (inventorySystem == null)
+            {
+                Debug.LogWarning($"{nameof(InventoryCompatibilityAdapter)} has no InventorySystem reference.", this);
                 return 0;
             }
 
@@ -102,14 +107,24 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
+            EnsureReferences();
+        }
+
+        private void EnsureReferences()
+        {
             if (inventorySystem == null)
             {
-                Debug.LogError($"{nameof(InventoryCompatibilityAdapter)} requires an InventorySystem reference.", this);
+                inventorySystem = InventorySystem.current ?? FindFirstObjectByType<InventorySystem>();
             }
 
             if (eventHub == null)
             {
-                Debug.LogError($"{nameof(InventoryCompatibilityAdapter)} requires a GameplayEventHub reference.", this);
+                eventHub = GetComponent<GameplayEventHub>() ?? FindFirstObjectByType<GameplayEventHub>();
+            }
+
+            if (itemDefinitions == null || itemDefinitions.Length == 0)
+            {
+                itemDefinitions = Resources.FindObjectsOfTypeAll<InventoryItemData>();
             }
         }
 
@@ -121,6 +136,8 @@ namespace GameDevelopmentProject.Quest
         {
             itemDefinition = null;
             result = InventoryMutationResult.Success;
+
+            EnsureReferences();
 
             if (string.IsNullOrWhiteSpace(itemId))
             {

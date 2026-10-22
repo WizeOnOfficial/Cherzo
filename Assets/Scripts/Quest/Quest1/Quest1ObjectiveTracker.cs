@@ -16,11 +16,17 @@ namespace GameDevelopmentProject.Quest
         public bool HasScannedIdCardAfterFuse { get; private set; }
         public bool HasEnteredMaintenanceWing { get; private set; }
 
+        private void Awake()
+        {
+            EnsureDependencies();
+        }
+
         private void OnEnable()
         {
+            EnsureDependencies();
+
             if (eventHub == null)
             {
-                Debug.LogError($"{nameof(Quest1ObjectiveTracker)} requires a GameplayEventHub reference.", this);
                 return;
             }
 
@@ -32,6 +38,19 @@ namespace GameDevelopmentProject.Quest
             eventHub.AccessResolved += HandleMaintenanceWingAccess;
             eventHub.AreaEntered += HandleAreaEntered;
             RefreshFromInventory();
+        }
+
+        private void EnsureDependencies()
+        {
+            if (eventHub == null)
+            {
+                eventHub = GetComponent<GameplayEventHub>() ?? FindFirstObjectByType<GameplayEventHub>();
+            }
+
+            if (inventoryQuery == null)
+            {
+                inventoryQuery = GetComponent<InventoryCompatibilityAdapter>() ?? FindFirstObjectByType<InventoryCompatibilityAdapter>();
+            }
         }
 
         private void OnDisable()
@@ -168,7 +187,11 @@ namespace GameDevelopmentProject.Quest
         {
             if (inventoryQuery == null)
             {
-                Debug.LogError($"{nameof(Quest1ObjectiveTracker)} requires an inventory query reference.", this);
+                EnsureDependencies();
+            }
+
+            if (inventoryQuery == null)
+            {
                 return;
             }
 

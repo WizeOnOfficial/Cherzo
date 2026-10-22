@@ -10,8 +10,12 @@ namespace GameDevelopmentProject.Quest
         public bool IsAvailable { get; private set; }
         public bool HasBeenFound { get; private set; }
 
+        // Empty prompt = not interactable yet. InteractionController skips it,
+        // so nothing is revealed before the scanner has been inspected.
         public string InteractMsg =>
-            IsAvailable ? "Press E to Search Hidden Message" : "Inspect Control Panel First";
+            !IsAvailable ? string.Empty
+            : HasBeenFound ? string.Empty
+            : "Press E to Inspect Back of Scanner";
 
         public void Interact(InteractionController interactionController)
         {
@@ -49,15 +53,27 @@ namespace GameDevelopmentProject.Quest
                 "Hidden Message found.");
         }
 
+        private void Awake()
+        {
+            EnsureDependencies();
+        }
+
         private void OnEnable()
+        {
+            EnsureDependencies();
+
+            if (eventHub != null)
+            {
+                eventHub.InteractionCompleted += HandleInteractionCompleted;
+            }
+        }
+
+        private void EnsureDependencies()
         {
             if (eventHub == null)
             {
-                Debug.LogError($"{nameof(HiddenMessagePrototypeInteraction)} requires a GameplayEventHub reference.", this);
-                return;
+                eventHub = FindFirstObjectByType<GameplayEventHub>();
             }
-
-            eventHub.InteractionCompleted += HandleInteractionCompleted;
         }
 
         private void OnDisable()

@@ -34,12 +34,20 @@ namespace GameDevelopmentProject.Quest
 
             if (eventHub == null || quest2Tracker == null)
             {
+                EnsureDependencies();
+            }
+
+            if (eventHub == null)
+            {
                 output = "Terminal is unavailable: required Quest 2 references are missing.";
                 Debug.LogError(output, this);
                 return false;
             }
 
-            if (!quest2Tracker.HasConnectedHardware)
+            var hw = FindFirstObjectByType<HardwareConnectionPrototypeInteraction>();
+            bool hwConnected = (quest2Tracker != null && quest2Tracker.HasConnectedHardware) || (hw != null && hw.HasConnectedHardware);
+
+            if (!hwConnected)
             {
                 output = "Access hardware must be connected before using this terminal.";
                 return false;
@@ -99,18 +107,19 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
+            EnsureDependencies();
+        }
+
+        public void EnsureDependencies()
+        {
             if (eventHub == null)
             {
-                Debug.LogError(
-                    $"{nameof(VirtualTerminalCommandParser)} requires a GameplayEventHub reference.",
-                    this);
+                eventHub = GetComponent<GameplayEventHub>() ?? FindFirstObjectByType<GameplayEventHub>();
             }
 
             if (quest2Tracker == null)
             {
-                Debug.LogError(
-                    $"{nameof(VirtualTerminalCommandParser)} requires a Quest 2 objective tracker reference.",
-                    this);
+                quest2Tracker = GetComponent<Quest2ObjectiveTracker>() ?? FindFirstObjectByType<Quest2ObjectiveTracker>();
             }
         }
     }

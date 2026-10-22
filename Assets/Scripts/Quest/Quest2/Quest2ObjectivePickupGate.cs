@@ -6,10 +6,15 @@ namespace GameDevelopmentProject.Quest
     {
         [SerializeField] private Quest2ObjectiveTracker quest2Tracker;
 
-        public override string DeniedPrompt => "Complete the Control Room role denial first";
+        public override string DeniedPrompt => string.Empty;
 
         public override bool CanAcquire(out string denialReason)
         {
+            if (quest2Tracker == null)
+            {
+                quest2Tracker = FindFirstObjectByType<Quest2ObjectiveTracker>();
+            }
+
             if (quest2Tracker == null)
             {
                 denialReason = "Quest 2 objective tracker is not configured.";
@@ -30,9 +35,7 @@ namespace GameDevelopmentProject.Quest
         {
             if (quest2Tracker == null)
             {
-                Debug.LogError(
-                    $"{nameof(Quest2ObjectivePickupGate)} requires a Quest 2 objective tracker reference.",
-                    this);
+                quest2Tracker = FindFirstObjectByType<Quest2ObjectiveTracker>();
             }
         }
     }

@@ -12,6 +12,8 @@ namespace GameDevelopmentProject.Quest
 
         public bool TryAcquire(InventoryItemData itemDefinition)
         {
+            EnsureDependencies();
+
             if (itemDefinition == null)
             {
                 Debug.LogError($"{nameof(InventoryPickupAcquisition)} received a null item definition.", this);
@@ -49,9 +51,19 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
+            EnsureDependencies();
+
             if (amount <= 0)
             {
                 Debug.LogError($"{nameof(InventoryPickupAcquisition)} amount must be greater than zero.", this);
+            }
+        }
+
+        private void EnsureDependencies()
+        {
+            if (inventoryAdapter == null)
+            {
+                inventoryAdapter = FindFirstObjectByType<InventoryCompatibilityAdapter>();
             }
         }
     }

@@ -10,6 +10,11 @@ namespace GameDevelopmentProject.Quest
 
         public override bool CanAcquire(out string denialReason)
         {
+            if (hiddenMessage == null)
+            {
+                hiddenMessage = FindFirstObjectByType<HiddenMessagePrototypeInteraction>();
+            }
+
             if (hiddenMessage != null && hiddenMessage.HasBeenFound)
             {
                 denialReason = null;
@@ -24,7 +29,7 @@ namespace GameDevelopmentProject.Quest
         {
             if (hiddenMessage == null)
             {
-                Debug.LogError($"{nameof(InteractionCompletedPickupGate)} requires a HiddenMessagePrototypeInteraction reference.", this);
+                hiddenMessage = FindFirstObjectByType<HiddenMessagePrototypeInteraction>();
             }
         }
     }

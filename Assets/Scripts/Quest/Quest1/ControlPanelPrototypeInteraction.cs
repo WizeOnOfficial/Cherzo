@@ -7,6 +7,7 @@ namespace GameDevelopmentProject.Quest
     {
         [SerializeField] private GameplayEventHub eventHub;
         [SerializeField] private InventoryCompatibilityAdapter inventoryQuery;
+        [SerializeField] private GameDevelopmentProject.Animation.SlidingDoorController doorToOpen;
 
         public bool HasAttemptedInitialAccess { get; private set; }
         public bool HasInspectedPanel { get; private set; }
@@ -20,17 +21,17 @@ namespace GameDevelopmentProject.Quest
             {
                 if (!HasAttemptedInitialAccess)
                 {
-                    return "Press E to Try Control Panel";
+                    return "Press E to Scan ID Card";
                 }
 
                 if (!HasInspectedPanel)
                 {
-                    return "Press E to Inspect Control Panel";
+                    return "Press E to Inspect Scanner";
                 }
 
                 if (!HasFoundHiddenMessage)
                 {
-                    return "Find Hidden Message First";
+                    return "Inspect Back of Scanner First";
                 }
 
                 if (!HasInstalledFuse)
@@ -46,6 +47,8 @@ namespace GameDevelopmentProject.Quest
 
         public void Interact(InteractionController interactionController)
         {
+            EnsureDependencies();
+
             if (eventHub == null)
             {
                 Debug.LogError($"{nameof(ControlPanelPrototypeInteraction)} requires a GameplayEventHub reference.", this);
@@ -90,6 +93,11 @@ namespace GameDevelopmentProject.Quest
                     {
                         if (HasGrantedMaintenanceWingAccess)
                         {
+                            if (doorToOpen != null && !doorToOpen.IsOpen)
+                            {
+                                doorToOpen.OpenDoor();
+                            }
+
                             Debug.Log(
                                 "Maintenance Wing access has already been granted. No new state change.",
                                 this);
@@ -108,6 +116,11 @@ namespace GameDevelopmentProject.Quest
                             QuestGameplayIds.MaintenanceWingAccess,
                             GameplayInteractionResult.Success,
                             "Maintenance Wing access granted.");
+
+                        if (doorToOpen != null)
+                        {
+                            doorToOpen.OpenDoor();
+                        }
                         return;
                     }
 
@@ -172,6 +185,8 @@ namespace GameDevelopmentProject.Quest
 
         private void OnEnable()
         {
+            EnsureDependencies();
+
             if (eventHub != null)
             {
                 eventHub.InteractionCompleted += HandleInteractionCompleted;
@@ -198,14 +213,28 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
+            EnsureDependencies();
+        }
+
+        private void EnsureDependencies()
+        {
             if (eventHub == null)
             {
-                Debug.LogError($"{nameof(ControlPanelPrototypeInteraction)} requires a GameplayEventHub reference.", this);
+                eventHub = FindFirstObjectByType<GameplayEventHub>();
             }
 
             if (inventoryQuery == null)
             {
-                Debug.LogError($"{nameof(ControlPanelPrototypeInteraction)} requires an inventory query reference.", this);
+                inventoryQuery = FindFirstObjectByType<InventoryCompatibilityAdapter>();
+            }
+
+            if (doorToOpen == null)
+            {
+                var doorObj = GameObject.Find("PintuMasuk");
+                if (doorObj != null)
+                {
+                    doorToOpen = doorObj.GetComponent<GameDevelopmentProject.Animation.SlidingDoorController>();
+                }
             }
         }
     }

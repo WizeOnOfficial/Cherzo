@@ -23,9 +23,12 @@ public class PickUpController : MonoBehaviour
 
     private void OnDisable()
     {
-        inventoryUI.OnItemSelected -= HandleItemSelected;
-        inventoryUI.OnInventoryClosed -= HandleInventoryClosed;
-        inventoryUI.OnInventoryOpened -= HandleInventoryOpened;
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnItemSelected -= HandleItemSelected;
+            inventoryUI.OnInventoryClosed -= HandleInventoryClosed;
+            inventoryUI.OnInventoryOpened -= HandleInventoryOpened;
+        }
     }
 
     private void HandleItemSelected(InventoryItemData itemData)
@@ -90,7 +93,7 @@ public class PickUpController : MonoBehaviour
 
     void CheckDropInput()
     {
-        if(Keyboard.current.qKey.wasPressedThisFrame && HasPickup && !isInventoryOpened)
+        if(Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame && HasPickup && !isInventoryOpened)
         {
             currentPickup.Drop(this);
             currentPickup = null;
@@ -99,7 +102,7 @@ public class PickUpController : MonoBehaviour
 
     void CheckUsePickupInput()
     {
-        if(Mouse.current.leftButton.wasPressedThisFrame && HasPickup && !isInventoryOpened)
+        if(Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && HasPickup && !isInventoryOpened)
         {
             currentPickup.Use();  
         }

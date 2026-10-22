@@ -39,6 +39,10 @@ public class PlayerInputScript : MonoBehaviour
         Cursor.visible = false;
         isMovementLocked = false;
 
+        if (baseSpeed <= 0.1f) baseSpeed = 3.0f;
+        if (sprintSpeed <= 0.1f) sprintSpeed = 5.5f;
+        if (maxStamina <= 0.1f) maxStamina = 100f;
+
         stamina = maxStamina;
         targetSpeed = baseSpeed;
         movementSpeed = baseSpeed;
@@ -137,31 +141,37 @@ public class PlayerInputScript : MonoBehaviour
 
     private void HandlePlayerLook()
     {
+        if (Mouse.current == null || playerCam == null) return;
+
         float rotX = this.transform.localEulerAngles.y + Mouse.current.delta.x.ReadValue() * 0.05f * sensitivitySpeed;
         this.transform.localEulerAngles = new Vector3(0, rotX, 0);
 
         rotY += Mouse.current.delta.y.ReadValue() * 0.05f * sensitivitySpeed;
         rotY = Mathf.Clamp(rotY, minLookValue, maxLookValue);
         playerCam.transform.localEulerAngles = new Vector3(-rotY, 0, 0);
-        
     }
 
     private void OnEnable()
     {
-        if(inventoryUI == null)
+        if (inventoryUI == null)
         {
-            Debug.LogError("[PlayerInputScript] InventoryUI is not assigned!");
-            return;
+            inventoryUI = FindFirstObjectByType<InventoryUI>();
         }
 
-        inventoryUI.OnInventoryClosed += HandleInventoryClosed;
-        inventoryUI.OnInventoryOpened += HandleInventoryOpened;
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnInventoryClosed += HandleInventoryClosed;
+            inventoryUI.OnInventoryOpened += HandleInventoryOpened;
+        }
     }
 
     private void OnDisable()
     {
-        inventoryUI.OnInventoryClosed -= HandleInventoryClosed;
-        inventoryUI.OnInventoryOpened -= HandleInventoryOpened;
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnInventoryClosed -= HandleInventoryClosed;
+            inventoryUI.OnInventoryOpened -= HandleInventoryOpened;
+        }
     }
 
     private void HandleInventoryOpened()

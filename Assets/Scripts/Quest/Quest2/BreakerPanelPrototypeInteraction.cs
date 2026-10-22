@@ -11,7 +11,7 @@ namespace GameDevelopmentProject.Quest
         public bool HasRepairedElectricalShort { get; private set; }
 
         public string InteractMsg => !IsAvailable
-            ? "Breaker Panel is inactive"
+            ? string.Empty
             : HasRepairedElectricalShort
                 ? "Electrical short repaired"
                 : "Press E to Repair Electrical Short";
@@ -58,19 +58,24 @@ namespace GameDevelopmentProject.Quest
 
         private void Awake()
         {
-            if (eventHub == null)
-            {
-                Debug.LogError(
-                    $"{nameof(BreakerPanelPrototypeInteraction)} requires a GameplayEventHub reference.",
-                    this);
-            }
+            EnsureDependencies();
         }
 
         private void OnEnable()
         {
+            EnsureDependencies();
+
             if (eventHub != null)
             {
                 eventHub.AccessResolved += HandleAccessResolved;
+            }
+        }
+
+        private void EnsureDependencies()
+        {
+            if (eventHub == null)
+            {
+                eventHub = FindFirstObjectByType<GameplayEventHub>();
             }
         }
 
