@@ -8,7 +8,7 @@ namespace GameDevelopmentProject.Animation
     {
         [Header("Slide Configuration")]
         [Tooltip("Offset in local coordinates when door is opened.")]
-        [SerializeField] private Vector3 openOffset = new Vector3(0f, 0f, 1.8f);
+        [SerializeField] private Vector3 openOffset = new Vector3(-1.6f, 0f, 0f);
 
         [Tooltip("Duration of the sliding animation in seconds.")]
         [SerializeField] private float slideDuration = 1.2f;
@@ -28,11 +28,23 @@ namespace GameDevelopmentProject.Animation
         private void Awake()
         {
             closedLocalPosition = transform.localPosition;
-            openedLocalPosition = closedLocalPosition + openOffset;
+            CalculateOpenedPosition();
 
             if (doorAudioSource == null)
             {
                 doorAudioSource = GetComponent<AudioSource>();
+            }
+        }
+
+        public void ToggleDoor()
+        {
+            if (isOpen)
+            {
+                CloseDoor();
+            }
+            else
+            {
+                OpenDoor();
             }
         }
 
@@ -95,10 +107,41 @@ namespace GameDevelopmentProject.Animation
             }
         }
 
+        public void SetSlideDuration(float duration)
+        {
+            if (duration > 0.05f)
+            {
+                slideDuration = duration;
+            }
+        }
+
         public void SetOpenOffset(Vector3 offset)
         {
             openOffset = offset;
-            openedLocalPosition = closedLocalPosition + openOffset;
+            CalculateOpenedPosition();
+        }
+
+        public void CalculateOpenedPosition()
+        {
+            if (closedLocalPosition == default && transform != null)
+            {
+                closedLocalPosition = transform.localPosition;
+            }
+
+            // Transform openOffset from the door's local rotation into the parent's coordinate space.
+            // In the door model's local space, openOffset.x is aligned with the door's width.
+            // This guarantees that openOffset.x always slides flush along the door's wall,
+            // regardless of the room, wall orientation, or world axis!
+            Vector3 worldOffset = transform.TransformDirection(openOffset);
+            if (transform.parent != null)
+            {
+                Vector3 parentOffset = transform.parent.InverseTransformDirection(worldOffset);
+                openedLocalPosition = closedLocalPosition + parentOffset;
+            }
+            else
+            {
+                openedLocalPosition = closedLocalPosition + worldOffset;
+            }
         }
     }
 }

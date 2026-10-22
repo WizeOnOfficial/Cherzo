@@ -1205,6 +1205,7 @@ GameObject:
   - component: {fileID: 1047286525}
   - component: {fileID: 1047286524}
   - component: {fileID: 1047286523}
+  - component: {fileID: 1047286527}
   m_Layer: 5
   m_Name: MainMenuCanvas
   m_TagString: Untagged
@@ -1702,3 +1703,23 @@ SceneRoots:
   - {fileID: 219635449}
   - {fileID: 1047286526}
   - {fileID: 594837128}
+--- !u!114 &1047286527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1047286522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1c2e3f4b5d6e7f8a9b0c1d2e3f4a5b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameDevelopmentProject.UI.MainMenuController
+  gameplaySceneName: AurickAssets
+  playButton: {fileID: 443504487}
+  optionsButton: {fileID: 190554126}
+  creditsButton: {fileID: 547204359}
+  quitButton: {fileID: 2043399474}
+  mainPanel: {fileID: 1047286522}
+  optionsPanel: {fileID: 0}
+  creditsPanel: {fileID: 0}

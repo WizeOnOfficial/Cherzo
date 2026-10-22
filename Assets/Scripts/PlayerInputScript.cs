@@ -29,7 +29,11 @@ public class PlayerInputScript : MonoBehaviour
     bool isFatigued;
     bool isMovementLocked;
 
+    public bool IsRunning => isRunning;
+    public bool IsFatigued => isFatigued;
+
     CinemachineCamera playerCam;
+    Rigidbody rb;
     Vector2 moveInput;
     float rotY;
 
@@ -46,6 +50,35 @@ public class PlayerInputScript : MonoBehaviour
         stamina = maxStamina;
         targetSpeed = baseSpeed;
         movementSpeed = baseSpeed;
+
+        float savedSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 1.0f);
+        if (savedSensitivity > 0.05f)
+        {
+            sensitivitySpeed = savedSensitivity;
+        }
+
+        rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.freezeRotation = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        }
+
+        var col = GetComponent<Collider>();
+        if (col != null)
+        {
+            var mat = new PhysicsMaterial("PlayerNoFriction")
+            {
+                dynamicFriction = 0f,
+                staticFriction = 0f,
+                frictionCombine = PhysicsMaterialCombine.Minimum,
+                bounciness = 0f,
+                bounceCombine = PhysicsMaterialCombine.Minimum
+            };
+            col.material = mat;
+        }
+
         playerCam = GetComponentInChildren<CinemachineCamera>();
 
         if(playerCam != null)
@@ -68,6 +101,32 @@ public class PlayerInputScript : MonoBehaviour
         }
     }
 
+    void FixedUpdate()
+    {
+        if (isMovementLocked)
+        {
+            if (rb != null)
+            {
+                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            }
+            return;
+        }
+
+        if (rb != null)
+        {
+            float h = moveInput.x;
+            float v = moveInput.y;
+            Vector3 moveDir = (transform.forward * v + transform.right * h);
+            if (moveDir.sqrMagnitude > 1f)
+            {
+                moveDir.Normalize();
+            }
+
+            Vector3 targetVel = moveDir * movementSpeed;
+            rb.linearVelocity = new Vector3(targetVel.x, rb.linearVelocity.y, targetVel.z);
+        }
+    }
+
     void Update()
     {
         if (isMovementLocked)
@@ -77,8 +136,6 @@ public class PlayerInputScript : MonoBehaviour
         {
             HandlePlayerMovement();
         }
-        
-        // Debug.Log(stamina);
     }
 
     public void OnMove(InputValue value)
@@ -133,10 +190,13 @@ public class PlayerInputScript : MonoBehaviour
 
         movementSpeed = Mathf.MoveTowards(movementSpeed, targetSpeed, 10f * Time.deltaTime);
 
-        // Movement
-        float h = moveInput.x;
-        float v = moveInput.y;
-        this.transform.Translate(new Vector3(h, 0, v) * Time.deltaTime * movementSpeed);
+        // Fallback movement only if no Rigidbody is present
+        if (rb == null)
+        {
+            float h = moveInput.x;
+            float v = moveInput.y;
+            this.transform.Translate(new Vector3(h, 0, v) * Time.deltaTime * movementSpeed);
+        }
     }
 
     private void HandlePlayerLook()
