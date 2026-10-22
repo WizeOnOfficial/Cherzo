@@ -1,3 +1,4 @@
+
 using UnityEditor;
 using System.IO;
 using UnityEngine;
@@ -6,6 +7,7 @@ public class TakeScreenshotFromCam : MonoBehaviour
 {
     [SerializeField] private string folderPath = "Icons";
     [SerializeField] private string fileName = "IconName";
+
     private Camera cameraLens;
 
     [ContextMenu("Take Screenshot")]
@@ -22,34 +24,91 @@ public class TakeScreenshotFromCam : MonoBehaviour
             cameraLens = GetComponent<Camera>();
         }
 
+        if (cameraLens == null)
+        {
+            Debug.LogError("No Camera component found!");
+            return;
+        }
+
         string directory = Path.GetDirectoryName(fullPath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+
+        if (!string.IsNullOrEmpty(directory) &&
+            !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        RenderTexture rt = new RenderTexture(256, 256, 24);
-        cameraLens.targetTexture = rt;
-        Texture2D screenshot = new Texture2D(256, 256, TextureFormat.RGBA32, false);
-        cameraLens.Render();
-        RenderTexture.active = rt;
-        screenshot.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
-        cameraLens.targetTexture = null;
-        RenderTexture.active = null;
+        // Save the original camera settings.
+        RenderTexture previousTarget = cameraLens.targetTexture;
+        RenderTexture previousActive = RenderTexture.active;
+        Color previousBackground = cameraLens.backgroundColor;
 
-        if(Application.isEditor)
+        // Create a RenderTexture with an alpha channel.
+        RenderTexture rt = new RenderTexture(
+            256,
+            256,
+            24,
+            RenderTextureFormat.ARGB32
+        );
+
+        rt.Create();
+
+        Texture2D screenshot = new Texture2D(
+            256,
+            256,
+            TextureFormat.RGBA32,
+            false
+        );
+
+        try
         {
-            DestroyImmediate(rt);
+            // Make the camera background transparent.
+            cameraLens.backgroundColor = new Color(
+                previousBackground.r,
+                previousBackground.g,
+                previousBackground.b,
+                0f
+            );
+
+            cameraLens.targetTexture = rt;
+            cameraLens.Render();
+
+            RenderTexture.active = rt;
+
+            screenshot.ReadPixels(
+                new Rect(0, 0, 256, 256),
+                0,
+                0
+            );
+
+            screenshot.Apply();
+
+            byte[] bytes = screenshot.EncodeToPNG();
+            File.WriteAllBytes(fullPath, bytes);
+
+            Debug.Log("Screenshot saved to: " + fullPath);
         }
-        else
+        finally
         {
-            Destroy(rt);
+            // Restore the original camera settings.
+            cameraLens.targetTexture = previousTarget;
+            cameraLens.backgroundColor = previousBackground;
+            RenderTexture.active = previousActive;
+
+            if (Application.isEditor)
+            {
+                DestroyImmediate(screenshot);
+                DestroyImmediate(rt);
+            }
+            else
+            {
+                Destroy(screenshot);
+                Destroy(rt);
+            }
         }
 
-        byte[] bytes = screenshot.EncodeToPNG();
-        System.IO.File.WriteAllBytes(fullPath, bytes);
         #if UNITY_EDITOR
-            AssetDatabase.Refresh();
+        AssetDatabase.Refresh();
         #endif
     }
 
@@ -59,11 +118,12 @@ public class TakeScreenshotFromCam : MonoBehaviour
 
         if (!Path.IsPathRooted(baseFolder))
         {
-            baseFolder = Path.Combine(Application.dataPath, baseFolder);
+            baseFolder = Path.Combine(
+                Application.dataPath,
+                baseFolder
+            );
         }
 
-        string finalName = fileName;
-
-        return Path.Combine(baseFolder, $"{finalName}.png");
+        return Path.Combine(baseFolder, $"{fileName}.png");
     }
 }
