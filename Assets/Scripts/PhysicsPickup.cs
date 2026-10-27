@@ -27,6 +27,16 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
 
     public void Interact(InteractionController interactionController)
     {
+        var pickupController = interactionController != null ? interactionController.GetComponent<PickUpController>() : null;
+        if (pickupController == null && interactionController != null)
+        {
+            pickupController = interactionController.GetComponentInParent<PickUpController>();
+        }
+        if (pickupController == null)
+        {
+            pickupController = FindFirstObjectByType<PickUpController>();
+        }
+
         if (inventoryAcquisition != null)
         {
             if (referenceItem == null)
@@ -42,8 +52,6 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
 
             return;
         }
-
-        var pickupController = interactionController != null ? interactionController.GetComponent<PickUpController>() : null;
 
         Grab(pickupController);
 
@@ -73,7 +81,7 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
             InventorySystem.current.Add(referenceItem);
         }
 
-        Destroy(this.gameObject);
+        pickUpController.HoldPickup(this);
     }
 
     public void SetPositionInParent(Transform newParent)
@@ -97,9 +105,10 @@ public class PhysicsPickup : MonoBehaviour, IPickupable
             pickupRigidbody.isKinematic = wasPickedup;
         }
 
-        if (pickupCollider != null)
+        var cols = GetComponentsInChildren<Collider>(true);
+        foreach (var col in cols)
         {
-            pickupCollider.enabled = !wasPickedup;
+            col.enabled = !wasPickedup;
         }
     }
 }

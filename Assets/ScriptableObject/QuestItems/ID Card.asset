@@ -15,4 +15,4 @@ MonoBehaviour:
   id: item.id_card
   displayName: ID Card
   icon: {fileID: -8819266641599732354, guid: 5bfa8c3b42020bf419dd31a0aada9e6a, type: 3}
-  prefab: {fileID: 0}
+  prefab: {fileID: 5000000000000000001, guid: 01ba6397971d4849b11dfc20610098f5, type: 3}

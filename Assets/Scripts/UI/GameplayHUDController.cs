@@ -34,7 +34,7 @@ namespace GameDevelopmentProject.UI
 
         private bool isGameOver;
         private bool isWinState;
-        private string currentObjective = "Investigate the facility lobby for security clearance credentials.";
+        private string currentObjective = "Search the lobby for security clearance credentials.";
         private bool hasKeycard;
         private bool hasOpenedLobbyDoor;
         private bool hasFuse;
@@ -68,7 +68,7 @@ namespace GameDevelopmentProject.UI
             if (loseScreenPanel != null) loseScreenPanel.SetActive(false);
 
             UpdateTimerDisplay();
-            SetObjective("Investigate the facility lobby for security clearance credentials.");
+            SetObjective("Search the lobby for security clearance credentials.");
         }
 
         private void Update()
@@ -222,39 +222,39 @@ namespace GameDevelopmentProject.UI
         {
             if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1FindIdCard)
             {
-                SetObjective("Security clearance acquired. Authorize entry at the lobby scanner.");
+                SetObjective("Hold ID Card in hand (Tab) and scan at the lobby terminal.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1TryInitialControlPanelAccess)
             {
-                SetObjective("Scanner error detected. Inspect the terminal panel for diagnostics.");
+                SetObjective("Scanner malfunction. Inspect the scanner panel for diagnostics.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1InspectControlPanel)
             {
-                SetObjective("Terminal locked. Check the surrounding casing for hidden maintenance overrides.");
+                SetObjective("Scanner locked. Inspect the rear casing for maintenance overrides.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1FindHiddenMessage)
             {
-                SetObjective("Override instructions uncovered. Locate an external power fuse in the utility area.");
+                SetObjective("Override notes found. Retrieve an External Fuse in the utility area.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1FindExternalFuse)
             {
-                SetObjective("External fuse retrieved. Return to the lobby scanner and install the power unit.");
+                SetObjective("Hold External Fuse in hand (Tab) and install on the scanner panel.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1InstallExternalFuse)
             {
-                SetObjective("Auxiliary power established. Scan authorized ID Card to open the corridor blast door.");
+                SetObjective("Power restored. Hold ID Card in hand (Tab) and scan to open blast door.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1ScanIdCardAfterFuse)
             {
-                SetObjective("Access approved. Proceed through the blast doors into the Maintenance Wing.");
+                SetObjective("Blast door unlocked. Proceed into the Maintenance Wing.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest1EnterMaintenanceWing)
             {
-                SetObjective("Maintenance Wing accessed. Proceed towards the Main Control Room.");
+                SetObjective("Maintenance Wing accessed. Proceed to the Control Room scanner.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest2RepairElectricalShort)
             {
-                SetObjective("Facility power restored. Scan authorized ID Card at the Control Room scanner.");
+                SetObjective("Facility power restored. Search the IT wing for administrator guidelines.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest2RoleDenied)
             {
@@ -262,15 +262,15 @@ namespace GameDevelopmentProject.UI
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest2FindItGuide)
             {
-                SetObjective("IT guide recovered. Connect the hardware terminal module at the server rack.");
+                SetObjective("IT Guide found. Connect the access hardware module at the server rack.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest2ConnectHardware)
             {
-                SetObjective("Hardware linked. Access server terminal to reconfigure security permissions.");
+                SetObjective("Hardware linked. Hold ID Card in hand (Tab) and run terminal commands.");
             }
             else if (objectiveEvent.ObjectiveId == QuestGameplayIds.Quest2ModifyAccessRole)
             {
-                SetObjective("Credentials elevated. Scan Administrator ID Card at the Control Room scanner.");
+                SetObjective("Administrator rights flashed. Hold ID Card in hand (Tab) and scan at Control Room.");
             }
         }
 
@@ -281,15 +281,15 @@ namespace GameDevelopmentProject.UI
                 hasKeycard = true;
                 if (!hasOpenedLobbyDoor)
                 {
-                    SetObjective("Authorize security clearance at the corridor gate.");
+                    SetObjective("Hold ID Card in hand (Tab) and scan at the lobby terminal.");
                 }
             }
             else if (itemEvent.ItemId == QuestGameplayIds.ExternalFuseItem && !hasFuse)
             {
                 hasFuse = true;
-                if (!hasRepairedBreaker)
+                if (!hasOpenedLobbyDoor)
                 {
-                    SetObjective("Auxiliary fuse acquired. Restore power at the electrical breaker.");
+                    SetObjective("Hold External Fuse in hand (Tab) and install on the scanner panel.");
                 }
             }
         }
@@ -302,23 +302,23 @@ namespace GameDevelopmentProject.UI
                 hasOpenedLobbyDoor = true;
                 if (!hasRepairedBreaker)
                 {
-                    SetObjective("Corridor breached. Facility systems unresponsive; inspect electrical panel.");
+                    SetObjective("Blast door unlocked. Proceed into the Maintenance Wing.");
                 }
             }
             else if (accessEvent.AccessPointId == QuestGameplayIds.ControlRoom)
             {
                 if (accessEvent.Result == GameplayInteractionResult.PowerUnavailable && !hasRepairedBreaker)
                 {
-                    SetObjective("Control room offline. Auxiliary electrical power must be restored.");
+                    SetObjective("Power short detected. Locate and repair the circuit breaker.");
                 }
                 else if (accessEvent.Result == GameplayInteractionResult.Denied && !hasElevatedRole)
                 {
-                    SetObjective("Security clearance insufficient. Elevate credentials via IT server systems.");
+                    SetObjective("Security clearance insufficient. Search the IT wing for administrator guidelines.");
                 }
                 else if (accessEvent.Result == GameplayInteractionResult.Success)
                 {
                     hasOpenedControlDoor = true;
-                    SetObjective("Sector 2 access authorized. Enter the Main Control Room.");
+                    SetObjective("Control Room access granted. Enter the Main Control Room.");
                 }
             }
         }
@@ -331,7 +331,7 @@ namespace GameDevelopmentProject.UI
                 hasRepairedBreaker = true;
                 if (!hasConnectedServer)
                 {
-                    SetObjective("Main power restored. Establish IT server terminal uplink.");
+                    SetObjective("Facility power restored. Search the IT wing for administrator guidelines.");
                 }
             }
             else if (interactionEvent.InteractionId == QuestGameplayIds.HardwareConnection &&
@@ -340,7 +340,7 @@ namespace GameDevelopmentProject.UI
                 hasConnectedServer = true;
                 if (!hasElevatedRole)
                 {
-                    SetObjective("Hardware linked. Access server terminal to reconfigure security permissions.");
+                    SetObjective("Hardware linked. Hold ID Card in hand (Tab) and run terminal commands.");
                 }
             }
         }
@@ -353,7 +353,7 @@ namespace GameDevelopmentProject.UI
                 hasElevatedRole = true;
                 if (!hasOpenedControlDoor)
                 {
-                    SetObjective("Credentials elevated. Scan authorized ID Card at the Control Room scanner.");
+                    SetObjective("Administrator rights flashed. Hold ID Card in hand (Tab) and scan at Control Room.");
                 }
             }
         }

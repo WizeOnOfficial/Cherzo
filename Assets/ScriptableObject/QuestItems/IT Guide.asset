@@ -15,4 +15,4 @@ MonoBehaviour:
   id: item.it_guide
   displayName: IT Guide
   icon: {fileID: 0}
-  prefab: {fileID: 0}
+  prefab: {fileID: 4000000000000000001, guid: 2c8a10ab35ac4dd1b458fd583996310c, type: 3}

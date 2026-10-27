@@ -8,10 +8,20 @@ public class InteractionController : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI interactionText;
     [SerializeField] float interactionDistance = 5f;
+    [SerializeField] private InventoryUI inventoryUI;
 
     IInteractable currentTargetedInteractable;
+    private bool isInventoryOpen;
+    private float suppressInteractionUntilTime;
 
     public string InteractionText => interactionText != null ? interactionText.text : string.Empty;
+
+    public void SuppressInteraction(float duration = 0.25f)
+    {
+        suppressInteractionUntilTime = Time.time + duration;
+        currentTargetedInteractable = null;
+        ClearInteractionText();
+    }
 
     public void ClearInteractionText()
     {
@@ -31,6 +41,11 @@ public class InteractionController : MonoBehaviour
 
     private void Awake()
     {
+        if (inventoryUI == null)
+        {
+            inventoryUI = FindFirstObjectByType<InventoryUI>();
+        }
+
         if (interactionText == null)
         {
             var texts = FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None);
@@ -45,8 +60,49 @@ public class InteractionController : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if (inventoryUI == null)
+        {
+            inventoryUI = FindFirstObjectByType<InventoryUI>();
+        }
+
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnInventoryOpened -= HandleInventoryOpened;
+            inventoryUI.OnInventoryOpened += HandleInventoryOpened;
+            inventoryUI.OnInventoryClosed -= HandleInventoryClosed;
+            inventoryUI.OnInventoryClosed += HandleInventoryClosed;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (inventoryUI != null)
+        {
+            inventoryUI.OnInventoryOpened -= HandleInventoryOpened;
+            inventoryUI.OnInventoryClosed -= HandleInventoryClosed;
+        }
+    }
+
+    private void HandleInventoryOpened()
+    {
+        isInventoryOpen = true;
+        currentTargetedInteractable = null;
+        ClearInteractionText();
+    }
+
+    private void HandleInventoryClosed()
+    {
+        isInventoryOpen = false;
+        suppressInteractionUntilTime = Time.time + 0.25f;
+        ClearInteractionText();
+    }
+
     private void OnGUI()
     {
+        if (isInventoryOpen || Cursor.visible) return;
+
         // Draw crosshair at center
         float chSize = 6f;
         var chRect = new Rect((Screen.width - chSize) / 2f, (Screen.height - chSize) / 2f, chSize, chSize);
@@ -75,6 +131,20 @@ public class InteractionController : MonoBehaviour
 
     public void Update() 
     {
+        if (isInventoryOpen || Time.time < suppressInteractionUntilTime)
+        {
+            currentTargetedInteractable = null;
+            ClearInteractionText();
+            return;
+        }
+
+        if (Cursor.lockState != CursorLockMode.Locked || Cursor.visible)
+        {
+            currentTargetedInteractable = null;
+            ClearInteractionText();
+            return;
+        }
+
         UpdateCurrentInteractable();
 
         UpdateInteractionText();
@@ -130,8 +200,24 @@ public class InteractionController : MonoBehaviour
 
     void CheckForInteractionInput()
     {
-        bool interactPressed = (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) ||
-                               (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame);
+        if (isInventoryOpen || Time.time < suppressInteractionUntilTime)
+        {
+            return;
+        }
+
+        if (Cursor.lockState != CursorLockMode.Locked || Cursor.visible)
+        {
+            return;
+        }
+
+        if (UnityEngine.EventSystems.EventSystem.current != null &&
+            UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        bool interactPressed = (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame) ||
+                               (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame);
 
         if (interactPressed)
         {

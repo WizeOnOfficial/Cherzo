@@ -55,6 +55,26 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
+            var pickUpCtrl = interactionController != null
+                ? interactionController.GetComponent<PickUpController>() ?? interactionController.GetComponentInParent<PickUpController>()
+                : null;
+            if (pickUpCtrl == null)
+            {
+                pickUpCtrl = PickUpController.Instance ?? FindFirstObjectByType<PickUpController>();
+            }
+
+            if (pickUpCtrl != null && !pickUpCtrl.IsHoldingItem(QuestGameplayIds.IdCardItem))
+            {
+                Debug.Log(
+                    "Maintenance Wing card scan denied. Reason: ID Card must be held in hand.",
+                    this);
+                eventHub.PublishAccessResolved(
+                    QuestGameplayIds.MaintenanceWingAccess,
+                    GameplayInteractionResult.MissingRequirement,
+                    "Hold ID Card in hand to scan.");
+                return;
+            }
+
             if (!HasEmergencyOverride)
             {
                 Debug.Log(

@@ -2345,21 +2345,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2, y: 1.5, z: 1.2}
   m_Center: {x: 0, y: 0.5, z: 0}
---- !u!114 &88880021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3035326151794165085}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a6b8c2d4e6f8091a3b5c7d9e0f2a4b6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameDevelopmentProject.Quest.MaintenanceWingControlRoomAccessInteraction
-  eventHub: {fileID: 1349513032}
-  inventoryQuery: {fileID: 1349513031}
-  doorToOpen: {fileID: 88880031}
 --- !u!65 &88880030
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8156,6 +8141,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractionController
   interactionText: {fileID: 0}
   interactionDistance: 5
+  inventoryUI: {fileID: 0}
 --- !u!114 &319502682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26218,15 +26204,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: daf568f51c2fa264691d172eec050e32, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.8
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: daf568f51c2fa264691d172eec050e32, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.8
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: daf568f51c2fa264691d172eec050e32, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.8
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: daf568f51c2fa264691d172eec050e32, type: 3}
       propertyPath: m_LocalPosition.x
@@ -26234,7 +26220,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: daf568f51c2fa264691d172eec050e32, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.4999999
+      value: 0.503
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: daf568f51c2fa264691d172eec050e32, type: 3}
       propertyPath: m_LocalPosition.z
@@ -26335,10 +26321,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0bd32bd9ba0acb49bbc50d7811b8821, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputScript
-  baseSpeed: 0
-  sprintSpeed: 0
-  sprintCooldown: 0
-  maxStamina: 0
+  baseSpeed: 3.5
+  sprintSpeed: 6
+  sprintCooldown: 2
+  maxStamina: 100
   sensitivitySpeed: 0.34
   minLookValue: -65
   maxLookValue: 40
@@ -26375,7 +26361,7 @@ MonoBehaviour:
   m_ActionEvents: []
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: 
+  m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!114 &1173742852
@@ -26392,6 +26378,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractionController
   interactionText: {fileID: 0}
   interactionDistance: 5
+  inventoryUI: {fileID: 0}
 --- !u!54 &1173742853
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -26417,7 +26404,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &1173742854
 MonoBehaviour:
@@ -26452,10 +26439,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.4
-  m_Height: 2.7488902
+  m_Radius: 0.8
+  m_Height: 2.850345
   m_Direction: 1
-  m_Center: {x: 0, y: 1.1576896, z: 0}
+  m_Center: {x: 0, y: 1.2084169, z: 0}
 --- !u!1 &1175384178
 GameObject:
   m_ObjectHideFlags: 0
@@ -30636,7 +30623,7 @@ Transform:
   m_GameObject: {fileID: 1320026555}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.34, z: 0}
+  m_LocalPosition: {x: 0, y: 1.883, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -114445,7 +114432,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2401673835739176935}
   - component: {fileID: 88880020}
-  - component: {fileID: 88880021}
   m_Layer: 0
   m_Name: handscanner(buatRoomNextLvlAja)
   m_TagString: Untagged

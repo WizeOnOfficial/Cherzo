@@ -61,6 +61,14 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
+            var pickUpCtrl = interactionController != null
+                ? interactionController.GetComponent<PickUpController>() ?? interactionController.GetComponentInParent<PickUpController>()
+                : null;
+            if (pickUpCtrl == null)
+            {
+                pickUpCtrl = PickUpController.Instance ?? FindFirstObjectByType<PickUpController>();
+            }
+
             if (!inventoryQuery.HasItem(QuestGameplayIds.IdCardItem))
             {
                 Debug.Log(
@@ -108,6 +116,18 @@ namespace GameDevelopmentProject.Quest
                             return;
                         }
 
+                        if (pickUpCtrl != null && !pickUpCtrl.IsHoldingItem(QuestGameplayIds.IdCardItem))
+                        {
+                            Debug.Log(
+                                "Maintenance Wing card scan denied. Reason: ID Card must be held in hand.",
+                                this);
+                            eventHub.PublishAccessResolved(
+                                QuestGameplayIds.MaintenanceWingAccess,
+                                GameplayInteractionResult.MissingRequirement,
+                                "Hold ID Card in hand to scan.");
+                            return;
+                        }
+
                         HasGrantedMaintenanceWingAccess = true;
                         Debug.Log(
                             "Maintenance Wing access granted after second ID Card scan on the Main Room Control Panel.",
@@ -136,6 +156,18 @@ namespace GameDevelopmentProject.Quest
                         return;
                     }
 
+                    if (pickUpCtrl != null && !pickUpCtrl.IsHoldingItem(QuestGameplayIds.ExternalFuseItem))
+                    {
+                        Debug.Log(
+                            "External Fuse installation denied. Reason: External Fuse must be held in hand.",
+                            this);
+                        eventHub.PublishInteractionCompleted(
+                            QuestGameplayIds.ControlPanelFuseInstallation,
+                            GameplayInteractionResult.MissingRequirement,
+                            "Hold External Fuse in hand to install.");
+                        return;
+                    }
+
                     var removalResult = inventoryQuery.RemoveItem(QuestGameplayIds.ExternalFuseItem);
                     if (removalResult != InventoryMutationResult.Success)
                     {
@@ -147,6 +179,11 @@ namespace GameDevelopmentProject.Quest
                             GameplayInteractionResult.InvalidState,
                             "External Fuse could not be consumed.");
                         return;
+                    }
+
+                    if (pickUpCtrl != null && pickUpCtrl.IsHoldingItem(QuestGameplayIds.ExternalFuseItem))
+                    {
+                        pickUpCtrl.Unequip();
                     }
 
                     HasInstalledFuse = true;
@@ -170,6 +207,18 @@ namespace GameDevelopmentProject.Quest
                     QuestGameplayIds.ControlPanelInspection,
                     GameplayInteractionResult.Success,
                     "Control Panel inspection completed.");
+                return;
+            }
+
+            if (pickUpCtrl != null && !pickUpCtrl.IsHoldingItem(QuestGameplayIds.IdCardItem))
+            {
+                Debug.Log(
+                    "Control Panel initial access denied. Reason: ID Card must be held in hand to scan.",
+                    this);
+                eventHub.PublishInteractionCompleted(
+                    QuestGameplayIds.ControlPanel,
+                    GameplayInteractionResult.MissingRequirement,
+                    "Hold ID Card in hand to scan.");
                 return;
             }
 

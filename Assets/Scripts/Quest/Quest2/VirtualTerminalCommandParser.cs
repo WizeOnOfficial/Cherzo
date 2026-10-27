@@ -92,6 +92,13 @@ namespace GameDevelopmentProject.Quest
                 return false;
             }
 
+            var pickUpCtrl = PickUpController.Instance ?? FindFirstObjectByType<PickUpController>();
+            if (pickUpCtrl != null && !pickUpCtrl.IsHoldingItem(QuestGameplayIds.IdCardItem))
+            {
+                output = "chmod: cannot access 'id_card': No device connected.\nPlease hold the ID Card in hand (Tab) to connect it to the terminal.";
+                return false;
+            }
+
             PermissionValue = QuestGameplayIds.ControlRoomAdministratorPermission;
             RoleId = QuestGameplayIds.ControlRoomAdministratorRole;
             HasModifiedAccessRole = true;
@@ -100,7 +107,7 @@ namespace GameDevelopmentProject.Quest
                 PermissionValue,
                 RoleId);
 
-            output = "id_card permissions updated: rwx";
+            output = "id_card detected in reader. Permissions updated: rwx (Control Room Administrator)";
             Debug.Log("Virtual ID Card role updated to Control Room Administrator.", this);
             return true;
         }

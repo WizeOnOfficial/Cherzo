@@ -28,11 +28,19 @@ public class InventoryUI : MonoBehaviour
         TrySubscribe();
     }
 
+    public bool IsOpen => m_inventoryPanel != null && m_inventoryPanel.activeSelf;
+
     private void InventoryVisibility()
     {
         if (m_inventoryPanel == null)
         {
             Debug.LogError("[InventoryUI] m_inventoryPanel is NOT assigned in the Inspector!");
+            return;
+        }
+
+        var terminal = FindFirstObjectByType<GameDevelopmentProject.Quest.VirtualTerminalUI>();
+        if (terminal != null && terminal.IsOpen)
+        {
             return;
         }
 
@@ -53,9 +61,13 @@ public class InventoryUI : MonoBehaviour
         {
             OnUpdateInventory();
             OnInventoryOpened?.Invoke();
-        } else if (EventSystem.current != null) 
+        }
+        else
         {
-            EventSystem.current.SetSelectedGameObject(null);
+            if (EventSystem.current != null)
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+            }
             OnInventoryClosed?.Invoke();
         }
     }

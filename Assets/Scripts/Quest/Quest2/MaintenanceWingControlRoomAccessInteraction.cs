@@ -104,6 +104,26 @@ namespace GameDevelopmentProject.Quest
                 return;
             }
 
+            var pickUpCtrl = interactionController != null
+                ? interactionController.GetComponent<PickUpController>() ?? interactionController.GetComponentInParent<PickUpController>()
+                : null;
+            if (pickUpCtrl == null)
+            {
+                pickUpCtrl = PickUpController.Instance ?? FindFirstObjectByType<PickUpController>();
+            }
+
+            if (pickUpCtrl != null && !pickUpCtrl.IsHoldingItem(QuestGameplayIds.IdCardItem))
+            {
+                Debug.Log(
+                    "Control Room access denied. Reason: ID Card must be held in hand to scan.",
+                    this);
+                eventHub.PublishAccessResolved(
+                    QuestGameplayIds.ControlRoom,
+                    GameplayInteractionResult.MissingRequirement,
+                    "Hold ID Card in hand to scan.");
+                return;
+            }
+
             if (!hasReportedPowerUnavailable)
             {
                 hasReportedPowerUnavailable = true;

@@ -39,15 +39,33 @@ public class PlayerInputScript : MonoBehaviour
     Vector2 moveInput;
     float rotY;
 
+    private void Awake()
+    {
+        var playerInput = GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.actions != null)
+        {
+            playerInput.actions.Enable();
+            var playerMap = playerInput.actions.FindActionMap("Player");
+            if (playerMap != null)
+            {
+                if (!playerMap.enabled) playerMap.Enable();
+                playerInput.currentActionMap = playerMap;
+                playerInput.defaultActionMap = "Player";
+            }
+        }
+    }
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         isMovementLocked = false;
 
-        anim = this.GetComponent<Animator>();
-        if (baseSpeed <= 0.1f) baseSpeed = 3.0f;
-        if (sprintSpeed <= 0.1f) sprintSpeed = 5.5f;
+        anim = GetComponent<Animator>();
+        if (anim == null) anim = GetComponentInChildren<Animator>();
+
+        if (baseSpeed <= 0.1f) baseSpeed = 3.5f;
+        if (sprintSpeed <= 0.1f) sprintSpeed = 6.0f;
         if (maxStamina <= 0.1f) maxStamina = 100f;
 
         stamina = maxStamina;
@@ -104,6 +122,22 @@ public class PlayerInputScript : MonoBehaviour
         }
     }
 
+    private Vector2 GetCurrentMoveInput()
+    {
+        Vector2 input = moveInput;
+        if (input.sqrMagnitude < 0.01f && Keyboard.current != null)
+        {
+            float h = 0f;
+            float v = 0f;
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) v += 1f;
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) v -= 1f;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) h -= 1f;
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) h += 1f;
+            input = new Vector2(h, v);
+        }
+        return input;
+    }
+
     void FixedUpdate()
     {
         if (isMovementLocked)
@@ -117,8 +151,9 @@ public class PlayerInputScript : MonoBehaviour
 
         if (rb != null)
         {
-            float h = moveInput.x;
-            float v = moveInput.y;
+            Vector2 input = GetCurrentMoveInput();
+            float h = input.x;
+            float v = input.y;
             Vector3 moveDir = (transform.forward * v + transform.right * h);
             if (moveDir.sqrMagnitude > 1f)
             {
@@ -134,10 +169,17 @@ public class PlayerInputScript : MonoBehaviour
     {
         if (isMovementLocked)
         {
+            if (anim != null) anim.SetBool("isWalking", false);
             return;
-        } else
+        }
+
+        HandlePlayerMovement();
+
+        Vector2 input = GetCurrentMoveInput();
+        isMoving = input.sqrMagnitude > 0.01f;
+        if (anim != null)
         {
-            HandlePlayerMovement();
+            anim.SetBool("isWalking", isMoving);
         }
     }
 
@@ -196,8 +238,9 @@ public class PlayerInputScript : MonoBehaviour
         // Fallback movement only if no Rigidbody is present
         if (rb == null)
         {
-            float h = moveInput.x;
-            float v = moveInput.y;
+            Vector2 input = GetCurrentMoveInput();
+            float h = input.x;
+            float v = input.y;
             this.transform.Translate(new Vector3(h, 0, v) * Time.deltaTime * movementSpeed);
         }
     }

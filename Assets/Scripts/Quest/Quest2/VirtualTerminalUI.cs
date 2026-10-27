@@ -100,6 +100,7 @@ namespace GameDevelopmentProject.Quest
                 interactionController.enabled = interactionControllerWasEnabled;
                 if (interactionControllerWasEnabled)
                 {
+                    interactionController.SuppressInteraction(0.25f);
                     interactionController.SetInteractionText(interactionPromptBeforeOpen);
                 }
             }
