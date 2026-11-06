@@ -15,4 +15,4 @@ MonoBehaviour:
   id: item.external_fuse
   displayName: External Fuse
   icon: {fileID: -4500920192171065606, guid: b757ca32dc98c9947b22a323c226d2d9, type: 3}
-  prefab: {fileID: 3000000000000000001, guid: 1af288efc5a443dd897350f79eaf2763, type: 3}
+  prefab: {fileID: 8951470446655810281, guid: f9028d4fff9b4174cb177376870250c9, type: 3}

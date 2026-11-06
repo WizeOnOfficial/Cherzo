@@ -37,6 +37,7 @@ public class PlayerInputScript : MonoBehaviour
     CinemachineCamera playerCam;
     Rigidbody rb;
     Vector2 moveInput;
+    float rotX;
     float rotY;
 
     private void Awake()
@@ -151,17 +152,7 @@ public class PlayerInputScript : MonoBehaviour
 
         if (rb != null)
         {
-            Vector2 input = GetCurrentMoveInput();
-            float h = input.x;
-            float v = input.y;
-            Vector3 moveDir = (transform.forward * v + transform.right * h);
-            if (moveDir.sqrMagnitude > 1f)
-            {
-                moveDir.Normalize();
-            }
-
-            Vector3 targetVel = moveDir * movementSpeed;
-            rb.linearVelocity = new Vector3(targetVel.x, rb.linearVelocity.y, targetVel.z);
+            HandlePlayerMovement();
         }
     }
 
@@ -173,7 +164,7 @@ public class PlayerInputScript : MonoBehaviour
             return;
         }
 
-        HandlePlayerMovement();
+        HandlePlayerSprint();
 
         Vector2 input = GetCurrentMoveInput();
         isMoving = input.sqrMagnitude > 0.01f;
@@ -188,9 +179,9 @@ public class PlayerInputScript : MonoBehaviour
         moveInput = value.Get<Vector2>();
     }
 
-    private void HandlePlayerMovement()
+    private void HandlePlayerSprint()
     {
-        // Sprint Logic
+         // Sprint Logic
         bool isShiftPressed = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 
         if(isFatigued)
@@ -234,27 +225,43 @@ public class PlayerInputScript : MonoBehaviour
         }
 
         movementSpeed = Mathf.MoveTowards(movementSpeed, targetSpeed, 10f * Time.deltaTime);
+    }
 
-        // Fallback movement only if no Rigidbody is present
-        if (rb == null)
+    private void HandlePlayerMovement()
+    {
+        Vector2 input = GetCurrentMoveInput();
+        float h = input.x;
+        float v = input.y;
+        Vector3 moveDir = (transform.forward * v + transform.right * h);
+        if (moveDir.sqrMagnitude > 1f)
         {
-            Vector2 input = GetCurrentMoveInput();
-            float h = input.x;
-            float v = input.y;
-            this.transform.Translate(new Vector3(h, 0, v) * Time.deltaTime * movementSpeed);
+            moveDir.Normalize();
         }
+
+        Vector3 targetVel = moveDir * movementSpeed;
+        rb.linearVelocity = new Vector3(targetVel.x, rb.linearVelocity.y, targetVel.z);
+
+        // // // Fallback movement only if no Rigidbody is present
+        // // if (rb == null)
+        // // {
+        // Vector2 input = GetCurrentMoveInput();
+        // float h = input.x;
+        // float v = input.y;
+        // this.transform.Translate(new Vector3(h, 0, v) * Time.deltaTime * movementSpeed);
+        // // }
     }
 
     private void HandlePlayerLook()
     {
         if (Mouse.current == null || playerCam == null) return;
 
-        float rotX = this.transform.localEulerAngles.y + Mouse.current.delta.x.ReadValue() * 0.05f * sensitivitySpeed;
-        this.transform.localEulerAngles = new Vector3(0, rotX, 0);
+        // Potentially screwing up the movement if Controller connected - Only Mouse.current is expected
+        rotX += Mouse.current.delta.x.ReadValue() * 0.05f * sensitivitySpeed;
+        this.transform.rotation = Quaternion.Euler(0, rotX, 0);
 
         rotY += Mouse.current.delta.y.ReadValue() * 0.05f * sensitivitySpeed;
         rotY = Mathf.Clamp(rotY, minLookValue, maxLookValue);
-        playerCam.transform.localEulerAngles = new Vector3(-rotY, 0, 0);
+        playerCam.transform.localRotation = Quaternion.Euler(-rotY, 0, 0);
     }
 
     private void OnEnable()

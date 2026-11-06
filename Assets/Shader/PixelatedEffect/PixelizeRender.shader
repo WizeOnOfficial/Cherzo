@@ -1,12 +1,12 @@
-Shader "PixelizeRender"
+Shader "Custom/PixelizeRender"
 {
     Properties
     {
         _MainTex("Texture", 2D) = "white" {}
-     }
+    }
 
-     SubShader
-     {
+    SubShader
+    {
         Tags
         {
             "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"
